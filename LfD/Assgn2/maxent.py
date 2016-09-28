@@ -53,7 +53,6 @@ def build_trans_mat_gridworld():
       
   return trans_mat
 
-
            
 def calcMaxEntPolicy(trans_mat, horizon, r_weights, state_features):
   """
@@ -69,25 +68,63 @@ def calcMaxEntPolicy(trans_mat, horizon, r_weights, state_features):
   n_states = np.shape(trans_mat)[0]
   n_actions = np.shape(trans_mat)[1]
   policy = np.zeros((n_states,n_actions))
-  return policy
 
+  z_s = np.zeros((n_states,1))
+  z_a = np.zeros((n_states,n_actions))
+
+  z_s[-1] = 1.
+  reward = state_features.dot(r_weights)
+
+  for t in range(0,horizon):
+    for i in range(0,n_states):
+      a_sum = 0.
+      for j in range(0,n_actions):
+        p_update = 0.
+        for k in range(0,n_states):
+          p_update = p_update + trans_mat[i][j][k]*z_s[k]
+
+        z_a[i][j] = p_update*np.exp(reward[i])
+        a_sum = a_sum + z_a[i][j]
+
+      # z_s[i] = np.sum(z_a,axis=1)
+      z_s[i] = a_sum
+
+    z_s[-1] = z_s[-1] + 1.
+
+  for i in range(0,n_states):
+    for j in range(0,n_actions):
+      policy[i][j] = z_a[i][j]/z_s[i]
+            
+  # print "policy_sum =", np.sum(policy,axis=1)
+  return policy
 
   
 def calcExpectedStateFreq(trans_mat, horizon, start_dist, policy):
-  """
-  Given a MaxEnt policy, begin with the start state distribution and propagate forward to find the expected state frequencies over the horizon
-  
-  trans_mat: an S x A x S' array of transition probabilites from state s to s' if action a is taken
-  horizon: the finite time horizon (int) of the problem for calculating state frequencies
+  """0 finite time horizon (int) of the problem for calculating state frequencies
   start_dist: a size S array of starting start probabilities - must sum to 1
   policy: an S x A array array of probabilities of taking action a when in state s
   
   return: a size S array of expected state visitation frequencies
   """
-  
   state_freq = np.zeros(len(start_dist))
+  n_states = np.shape(trans_mat)[0]
+  n_actions = np.shape(trans_mat)[1]
+  timed_state_freq = np.zeros((n_states,horizon+1))
+  timed_state_freq[:,0] = start_dist
+
+  for k in range(0,n_states):
+    for t in range(0,horizon): 
+      update = 0.
+
+      for i in range(0,n_states):
+        for j in range(0,n_actions):
+          update = update + timed_state_freq[i][t]*policy[i][j]*trans_mat[i][j][k]
+     
+      timed_state_freq[k][t+1] = timed_state_freq[k][t+1] + update
+
+    state_freq[k] = np.sum(timed_state_freq,axis=1)  
+
   return state_freq
-  
 
 
 def maxEntIRL(trans_mat, state_features, demos, seed_weights, n_epochs, horizon, learning_rate):
@@ -107,6 +144,8 @@ def maxEntIRL(trans_mat, state_features, demos, seed_weights, n_epochs, horizon,
   
   n_features = np.shape(state_features)[1]
   r_weights = np.zeros(n_features)
+
+  policy = calcMaxEntPolicy(trans_mat,horizon,r_weights,state_features)
   return r_weights
   
  
