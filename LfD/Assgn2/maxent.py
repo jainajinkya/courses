@@ -185,7 +185,7 @@ if __name__ == '__main__':
   # Parameters
   n_epochs = 100
   horizon = 10
-  learning_rate = 0.1
+  learning_rate = 1.0
   
   # Main algorithm call
   r_weights = maxEntIRL(trans_mat, state_features, demos, seed_weights, n_epochs, horizon, learning_rate)
