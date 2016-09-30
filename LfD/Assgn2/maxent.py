@@ -75,6 +75,8 @@ def calcMaxEntPolicy(trans_mat, horizon, r_weights, state_features):
   z_s[-1] = 1.
   reward = state_features.dot(r_weights)
 
+  # print "r_weights = ", r_weights
+
   for t in range(0,horizon):
     for i in range(0,n_states):
       a_sum = 0.
@@ -122,7 +124,7 @@ def calcExpectedStateFreq(trans_mat, horizon, start_dist, policy):
      
       timed_state_freq[k][t+1] = timed_state_freq[k][t+1] + update
 
-    state_freq[k] = np.sum(timed_state_freq,axis=1)  
+    state_freq[k] = np.sum(timed_state_freq[k])  
 
   return state_freq
 
@@ -142,10 +144,32 @@ def maxEntIRL(trans_mat, state_features, demos, seed_weights, n_epochs, horizon,
   return: a size F array of reward weights
   """
   
+  n_states = np.shape(state_features)[0]
   n_features = np.shape(state_features)[1]
   r_weights = np.zeros(n_features)
+  m = len(demos)
+  f_tilde = np.zeros(n_features)
 
-  policy = calcMaxEntPolicy(trans_mat,horizon,r_weights,state_features)
+  r_weights = seed_weights
+  start_dist = np.zeros(n_states)
+  start_dist[0] = 1.
+
+  for i in range(m):
+  	for j in range(len(demos[i])):
+  		f_tilde = f_tilde + state_features[demos[i][j]]
+
+  f_tilde = f_tilde/m
+  # print "f_tilde = ", f_tilde
+
+  for i in range(n_epochs):
+  	policy = calcMaxEntPolicy(trans_mat,horizon,r_weights,state_features)
+  	state_freq = calcExpectedStateFreq(trans_mat, horizon, start_dist, policy)
+  	f_count = np.dot(state_freq,state_features)
+
+  	delta_L = f_tilde - f_count
+  	# print "f_tilde =", f_tilde
+  	r_weights = r_weights + learning_rate*delta_L
+
   return r_weights
   
  
@@ -161,7 +185,7 @@ if __name__ == '__main__':
   # Parameters
   n_epochs = 100
   horizon = 10
-  learning_rate = 1.0
+  learning_rate = 0.1
   
   # Main algorithm call
   r_weights = maxEntIRL(trans_mat, state_features, demos, seed_weights, n_epochs, horizon, learning_rate)
