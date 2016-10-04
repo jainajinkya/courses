@@ -187,21 +187,54 @@ if __name__ == '__main__':
   horizon = 10
   learning_rate = 1.0
   
-  # Main algorithm call
-  r_weights = maxEntIRL(trans_mat, state_features, demos, seed_weights, n_epochs, horizon, learning_rate)
+  # # Main algorithm call
+  # r_weights = maxEntIRL(trans_mat, state_features, demos, seed_weights, n_epochs, horizon, learning_rate)
   
-  # Construct reward function from weights and state features
-  reward_fxn = []
-  for s_i in range(25):
-    reward_fxn.append( np.dot(r_weights, state_features[s_i]) )
-  reward_fxn = np.reshape(reward_fxn, (5,5))
+  # # Construct reward function from weights and state features
+  # reward_fxn = []
+  # for s_i in range(25):
+  #   reward_fxn.append( np.dot(r_weights, state_features[s_i]) )
+  # reward_fxn = np.reshape(reward_fxn, (5,5))
+  # 
+  ## Plot reward function
+  # fig = plt.figure()
+  # ax = fig.add_subplot(111, projection='3d')
+  # X = np.arange(0, 5, 1)
+  # Y = np.arange(0, 5, 1)
+  # X, Y = np.meshgrid(X, Y)
+  # surf = ax.plot_surface(X, Y, reward_fxn, rstride=1, cstride=1, cmap=cm.coolwarm,
+		# 	linewidth=0, antialiased=False)
+  # plt.show()
+
   
-  # Plot reward function
-  fig = plt.figure()
-  ax = fig.add_subplot(111, projection='3d')
-  X = np.arange(0, 5, 1)
-  Y = np.arange(0, 5, 1)
-  X, Y = np.meshgrid(X, Y)
-  surf = ax.plot_surface(X, Y, reward_fxn, rstride=1, cstride=1, cmap=cm.coolwarm,
-			linewidth=0, antialiased=False)
+  ############## Q1 #############################
+  alpha = np.arange(0.0,2.0,0.1)
+  av_r = np.zeros(len(alpha))
+  av_r2 = np.zeros(len(alpha))
+  av_r3 = np.zeros(len(alpha))
+  for k in range(len(alpha)):
+    learning_rate = alpha[k]
+    r_weights = maxEntIRL(trans_mat, state_features, demos, seed_weights, n_epochs, horizon, learning_rate)
+    r_dummy = np.zeros(4)
+    for i in range(len(demos)):
+      av_reward = 0.0
+      for j in range(len(demos[i])):
+        av_reward = av_reward + (np.dot(r_weights, state_features[demos[i][j]]))/len(demos[i])
+
+      r_dummy[i] = av_reward
+    
+    av_r[k] = np.sum(r_dummy)/4
+    av_r2[k] = max(r_dummy)
+    av_r3[k] = min(r_dummy)
+
+
+  plot1, = plt.plot(alpha,av_r, linewidth=5.0, label = 'Average value of rewards')
+  plot2, = plt.plot(alpha,av_r2,'r--', linewidth=5.0, label = 'Maximum value of rewards')
+  plot3, = plt.plot(alpha,av_r3,'k--', linewidth=5.0, label = 'Minimum value of rewards')
+  plt.ylabel('Average Reward for the Demos')
+  plt.xlabel('Learning rate')
+  plt.legend([plot1, plot2,plot3], ['Average value of rewards', 'Maximum value of rewards', 'Minimum value of rewards'])
   plt.show()
+  # print "av_reward = ", av_reward
+ ##########################################
+
