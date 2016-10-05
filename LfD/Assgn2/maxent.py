@@ -2,6 +2,7 @@ import numpy as np
 import numpy.random as rand
 from mpl_toolkits.mplot3d.axes3d import Axes3D
 import matplotlib.pyplot as plt
+import matplotlib
 from matplotlib import cm
 
         
@@ -181,11 +182,12 @@ if __name__ == '__main__':
   state_features = np.eye(26,25)  # Terminal state has no features, forcing zero reward 
   demos = [[0,1,2,3,4,9,14,19,24,25],[0,5,10,15,20,21,22,23,24,25],[0,5,6,11,12,17,18,23,24,25],[0,1,6,7,12,13,18,19,24,25]]
   seed_weights = np.zeros(25)
+  # seed_weights = -1*np.ones(25)
   
-  # Parameters
-  n_epochs = 100
-  horizon = 10
-  learning_rate = 1.0
+  # # Parameters
+  # n_epochs = 100
+  # horizon = 10
+  # learning_rate = 1.9
   
   # # Main algorithm call
   # r_weights = maxEntIRL(trans_mat, state_features, demos, seed_weights, n_epochs, horizon, learning_rate)
@@ -195,8 +197,9 @@ if __name__ == '__main__':
   # for s_i in range(25):
   #   reward_fxn.append( np.dot(r_weights, state_features[s_i]) )
   # reward_fxn = np.reshape(reward_fxn, (5,5))
-  # 
-  ## Plot reward function
+
+  # reward_fxn[4,4] = 40.0
+  # Plot reward function
   # fig = plt.figure()
   # ax = fig.add_subplot(111, projection='3d')
   # X = np.arange(0, 5, 1)
@@ -204,37 +207,103 @@ if __name__ == '__main__':
   # X, Y = np.meshgrid(X, Y)
   # surf = ax.plot_surface(X, Y, reward_fxn, rstride=1, cstride=1, cmap=cm.coolwarm,
 		# 	linewidth=0, antialiased=False)
+
   # plt.show()
 
   
   ############## Q1 #############################
-  alpha = np.arange(0.0,2.0,0.1)
-  av_r = np.zeros(len(alpha))
-  av_r2 = np.zeros(len(alpha))
-  av_r3 = np.zeros(len(alpha))
-  for k in range(len(alpha)):
-    learning_rate = alpha[k]
-    r_weights = maxEntIRL(trans_mat, state_features, demos, seed_weights, n_epochs, horizon, learning_rate)
-    r_dummy = np.zeros(4)
-    for i in range(len(demos)):
-      av_reward = 0.0
-      for j in range(len(demos[i])):
-        av_reward = av_reward + (np.dot(r_weights, state_features[demos[i][j]]))/len(demos[i])
+  # alpha = np.arange(0.0,5.0,0.2)
+  # # alpha = np.arange(0.0,1.0,0.5)
+  # av_r = np.zeros(len(alpha))
+  # av_r2 = np.zeros(len(alpha))
+  # av_r3 = np.zeros(len(alpha))
+  # for k in range(len(alpha)):
+  #   learning_rate = alpha[k]
+  #   r_weights = maxEntIRL(trans_mat, state_features, demos, seed_weights, n_epochs, horizon, learning_rate)
+  #   r_dummy = np.zeros(4)
+  #   for i in range(len(demos)):
+  #     av_reward = 0.0
+  #     for j in range(len(demos[i])):
+  #       av_reward = av_reward + (np.dot(r_weights, state_features[demos[i][j]]))/len(demos[i])
 
-      r_dummy[i] = av_reward
+  #     r_dummy[i] = av_reward
     
-    av_r[k] = np.sum(r_dummy)/4
-    av_r2[k] = max(r_dummy)
-    av_r3[k] = min(r_dummy)
+  #   av_r[k] = np.sum(r_dummy)/4
+  #   av_r2[k] = max(r_dummy)
+  #   av_r3[k] = min(r_dummy)
 
 
-  plot1, = plt.plot(alpha,av_r, linewidth=5.0, label = 'Average value of rewards')
-  plot2, = plt.plot(alpha,av_r2,'r--', linewidth=5.0, label = 'Maximum value of rewards')
-  plot3, = plt.plot(alpha,av_r3,'k--', linewidth=5.0, label = 'Minimum value of rewards')
-  plt.ylabel('Average Reward for the Demos')
-  plt.xlabel('Learning rate')
-  plt.legend([plot1, plot2,plot3], ['Average value of rewards', 'Maximum value of rewards', 'Minimum value of rewards'])
-  plt.show()
-  # print "av_reward = ", av_reward
+  # plot1, = plt.plot(alpha,av_r, linewidth=5.0, label = 'Average value of rewards')
+  # plot2, = plt.plot(alpha,av_r2,'r--', linewidth=5.0, label = 'Maximum value of rewards')
+  # plot3, = plt.plot(alpha,av_r3,'k--', linewidth=5.0, label = 'Minimum value of rewards')
+  # plt.ylabel('Average Reward for the Demos')
+  # plt.xlabel('Learning rate')
+  # plt.legend([plot1, plot2,plot3], ['Average value of rewards', 'Maximum value of rewards', 'Minimum value of rewards'], loc=2)
+  # # plt.legend()
+  # matplotlib.rcParams.update({'font.size': 18})
+  # plt.show()
+  # # print "av_reward = ", av_reward
  ##########################################
 
+ ######Q2################
+  # av_r = np.zeros(4)
+  # # av_r2 = np.zeros(len(alpha))
+  # # av_r3 = np.zeros(len(alpha))
+  # # for k in range(len(alpha)):
+  # # r_weights = maxEntIRL(trans_mat, state_features, demos, seed_weights, n_epochs, horizon, learning_rate)
+  # r_dummy = np.zeros(4)
+  # r_fxn = np.reshape(reward_fxn, (25,1))
+  # for i in range(len(demos)):
+  # 	av_reward = 0.0
+  # 	for j in range(len(demos[i])):
+  # 		av_reward = av_reward + (np.dot(r_weights, state_features[demos[i][j]]))/len(demos[i])
+
+  # 	r_dummy[i] = av_reward
+ 	# av_r[i] = ((max(r_fxn[0:-1]) - (np.sum(r_dummy[i]))/4)/max(r_fxn[0:-1]))*100.
+
+  # print "av_rewards = ", r_dummy
+  # print "max_reward = ", max(r_fxn[0:-1])
+  # X_1 = np.arange(1,5,1)
+  # plot1, = plt.plot(X_1,av_r, linewidth=5.0)
+  # # # plot2, = plt.plot(alpha,av_r2,'r--', linewidth=5.0, label = 'Maximum value of rewards')
+  # # # plot3, = plt.plot(alpha,av_r3,'k--', linewidth=5.0, label = 'Minimum value of rewards')
+  # plt.ylabel('% Difference in Rewards of Demos and Maximum possible reward')
+  # plt.xlabel('Demo')
+  # # # plt.legend([plot1, plot2,plot3], ['Average value of rewards', 'Maximum value of rewards', 'Minimum value of rewards'], loc=2)
+  # # # plt.legend()
+  # matplotlib.rcParams.update({'font.size': 18})
+  # plt.show()
+
+  ############## Q3 #############
+  seed_weights = -1*np.ones(25)
+  seed_weights[-1] = 10
+
+  # Parameters
+  n_epochs = 100
+  horizon = 100
+  learning_rate = 1.9
+
+  new_policy = calcMaxEntPolicy(trans_mat,horizon,seed_weights,state_features)
+  print "policy = ", new_policy
+
+  # r_weights = maxEntIRL(trans_mat, state_features, demos, seed_weights, n_epochs, horizon, learning_rate)
+  # optimal_policy = calcMaxEntPolicy(trans_mat,horizon,r_weights,state_features)
+  # print "optimal_policy = " , optimal_policy
+
+  r_weights = seed_weights
+  reward_fxn = []
+  for s_i in range(25):
+    reward_fxn.append( np.dot(r_weights, state_features[s_i]) )
+  reward_fxn = np.reshape(reward_fxn, (5,5))
+
+  # reward_fxn[4,4] = 40.0
+  ##Plot reward function
+  fig = plt.figure()
+  ax = fig.add_subplot(111, projection='3d')
+  X = np.arange(0, 5, 1)
+  Y = np.arange(0, 5, 1)
+  X, Y = np.meshgrid(X, Y)
+  surf = ax.plot_surface(X, Y, reward_fxn, rstride=1, cstride=1, cmap=cm.coolwarm,
+			linewidth=0, antialiased=False)
+
+  plt.show()
