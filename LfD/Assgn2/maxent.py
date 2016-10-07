@@ -76,8 +76,6 @@ def calcMaxEntPolicy(trans_mat, horizon, r_weights, state_features):
   z_s[-1] = 1.
   reward = state_features.dot(r_weights)
 
-  # print "r_weights = ", r_weights
-
   for t in range(0,horizon):
     for i in range(0,n_states):
       a_sum = 0.
@@ -89,18 +87,17 @@ def calcMaxEntPolicy(trans_mat, horizon, r_weights, state_features):
         z_a[i][j] = p_update*np.exp(reward[i])
         a_sum = a_sum + z_a[i][j]
 
-      # z_s[i] = np.sum(z_a,axis=1)
-      z_s[i] = a_sum
-
-    z_s[-1] = z_s[-1] + 1.
+      if i == n_states-1:
+        z_s[i] = 1. + a_sum
+      else: z_s[i] = a_sum
 
   for i in range(0,n_states):
     for j in range(0,n_actions):
       policy[i][j] = z_a[i][j]/z_s[i]
             
   # print "policy_sum =", np.sum(policy,axis=1)
+  # print "policy =", policy
   return policy
-
   
 def calcExpectedStateFreq(trans_mat, horizon, start_dist, policy):
   """0 finite time horizon (int) of the problem for calculating state frequencies
@@ -114,19 +111,23 @@ def calcExpectedStateFreq(trans_mat, horizon, start_dist, policy):
   n_actions = np.shape(trans_mat)[1]
   timed_state_freq = np.zeros((n_states,horizon+1))
   timed_state_freq[:,0] = start_dist
+  # print "timed_state_freq =", timed_state_freq
 
   for k in range(0,n_states):
     for t in range(0,horizon): 
       update = 0.
-
       for i in range(0,n_states):
         for j in range(0,n_actions):
           update = update + timed_state_freq[i][t]*policy[i][j]*trans_mat[i][j][k]
-     
-      timed_state_freq[k][t+1] = timed_state_freq[k][t+1] + update
+          # if k==n_states-2:
+          #   print "timed_state_freq[i][t]*policy[i][j]= ", timed_state_freq[i][t]*policy[i][j]*trans_mat[i][j][k]
+                        
+      timed_state_freq[k][t+1] = update
+
+      # print "np.dot(policy.transpose(),trans_mat[:,:,k]) = ", np.shape(np.dot(timed_state_freq.transpose(),np.dot(policy,trans_mat[:,:,k].transpose())))
 
     state_freq[k] = np.sum(timed_state_freq[k])  
-
+  
   return state_freq
 
 
@@ -161,18 +162,24 @@ def maxEntIRL(trans_mat, state_features, demos, seed_weights, n_epochs, horizon,
 
   f_tilde = f_tilde/m
   # print "f_tilde = ", f_tilde
-
-  for i in range(n_epochs):
-  	policy = calcMaxEntPolicy(trans_mat,horizon,r_weights,state_features)
-  	state_freq = calcExpectedStateFreq(trans_mat, horizon, start_dist, policy)
-  	f_count = np.dot(state_freq,state_features)
-
-  	delta_L = f_tilde - f_count
-  	# print "f_tilde =", f_tilde
-  	r_weights = r_weights + learning_rate*delta_L
-
-  return r_weights
   
+  for i in range(n_epochs):
+    f_count = np.zeros(n_features)
+    policy = calcMaxEntPolicy(trans_mat,horizon,r_weights,state_features)
+    state_freq = calcExpectedStateFreq(trans_mat, horizon, start_dist, policy)
+    
+    f_count = np.dot(state_freq,state_features)
+    # print "fcount = ", f_count
+
+    delta_L = f_tilde - f_count
+    delta_L[-1] = 0.
+    # print "delta_L =", delta_L
+    # print "delta_L =", np.linalg.norm(delta_L)
+    r_weights = r_weights + learning_rate*delta_L
+    l_norm = np.linalg.norm(delta_L)
+
+  # print "state_freq =", state_freq
+  return r_weights, l_norm
  
  
 if __name__ == '__main__':
@@ -185,13 +192,13 @@ if __name__ == '__main__':
   # seed_weights = -1*np.ones(25)
   
   # # Parameters
-  # n_epochs = 100
-  # horizon = 10
-  # learning_rate = 1.9
+  n_epochs = 100
+  horizon = 10
+  learning_rate = 1.5
   
-  # # Main algorithm call
+  # Main algorithm call
   # r_weights = maxEntIRL(trans_mat, state_features, demos, seed_weights, n_epochs, horizon, learning_rate)
-  
+  # # print "error =", np.linalg.norm(l_grad)
   # # Construct reward function from weights and state features
   # reward_fxn = []
   # for s_i in range(25):
@@ -199,7 +206,7 @@ if __name__ == '__main__':
   # reward_fxn = np.reshape(reward_fxn, (5,5))
 
   # reward_fxn[4,4] = 40.0
-  # Plot reward function
+  # ##Plot reward function
   # fig = plt.figure()
   # ax = fig.add_subplot(111, projection='3d')
   # X = np.arange(0, 5, 1)
@@ -211,39 +218,47 @@ if __name__ == '__main__':
   # plt.show()
 
   
-  ############## Q1 #############################
-  # alpha = np.arange(0.0,5.0,0.2)
-  # # alpha = np.arange(0.0,1.0,0.5)
-  # av_r = np.zeros(len(alpha))
-  # av_r2 = np.zeros(len(alpha))
-  # av_r3 = np.zeros(len(alpha))
+  ############# Q1 #############################
+  # alpha = np.arange(0.0,3.0,0.05)
+  # # # alpha = np.arange(0.0,1.0,0.5)
+  # # av_r = np.zeros(len(alpha))
+  # # av_r2 = np.zeros(len(alpha))
+  # # av_r3 = np.zeros(len(alpha))
+  # L_grad = np.zeros(len(alpha))
+
   # for k in range(len(alpha)):
   #   learning_rate = alpha[k]
-  #   r_weights = maxEntIRL(trans_mat, state_features, demos, seed_weights, n_epochs, horizon, learning_rate)
-  #   r_dummy = np.zeros(4)
-  #   for i in range(len(demos)):
-  #     av_reward = 0.0
-  #     for j in range(len(demos[i])):
-  #       av_reward = av_reward + (np.dot(r_weights, state_features[demos[i][j]]))/len(demos[i])
+  #   r_weights,l_grad = maxEntIRL(trans_mat, state_features, demos, seed_weights, n_epochs, horizon, learning_rate)
+  #   L_grad[k] = np.linalg.norm(l_grad)
+  #   # r_dummy = np.zeros(4)
+  #   # for i in range(len(demos)):
+  #   #   av_reward = 0.0
+  #   #   for j in range(len(demos[i])):
+  #   #     av_reward = av_reward + (np.dot(r_weights, state_features[demos[i][j]]))/len(demos[i])
 
-  #     r_dummy[i] = av_reward
+  #   #   r_dummy[i] = av_reward
     
-  #   av_r[k] = np.sum(r_dummy)/4
-  #   av_r2[k] = max(r_dummy)
-  #   av_r3[k] = min(r_dummy)
+  #   # av_r[k] = np.sum(r_dummy)/4
+  #   # av_r2[k] = max(r_dummy)
+  #   # av_r3[k] = min(r_dummy)
 
 
-  # plot1, = plt.plot(alpha,av_r, linewidth=5.0, label = 'Average value of rewards')
-  # plot2, = plt.plot(alpha,av_r2,'r--', linewidth=5.0, label = 'Maximum value of rewards')
-  # plot3, = plt.plot(alpha,av_r3,'k--', linewidth=5.0, label = 'Minimum value of rewards')
-  # plt.ylabel('Average Reward for the Demos')
+  # # plot1, = plt.plot(alpha,av_r, linewidth=5.0, label = 'Average value of rewards')
+  # # plot2, = plt.plot(alpha,av_r2,'r--', linewidth=5.0, label = 'Maximum value of rewards')
+  # # plot3, = plt.plot(alpha,av_r3,'k--', linewidth=5.0, label = 'Minimum value of rewards')
+
+  # # plt.ylabel('Average Reward for the Demos')
+  # # plt.xlabel('Learning rate')
+  # # plt.legend([plot1, plot2,plot3], ['Average value of rewards', 'Maximum value of rewards', 'Minimum value of rewards'], loc=2)
+  # # # plt.legend()
+  # # matplotlib.rcParams.update({'font.size': 18})
+  # plt.plot(alpha,L_grad)
+  # plt.ylabel('Gradient Value')
   # plt.xlabel('Learning rate')
-  # plt.legend([plot1, plot2,plot3], ['Average value of rewards', 'Maximum value of rewards', 'Minimum value of rewards'], loc=2)
-  # # plt.legend()
   # matplotlib.rcParams.update({'font.size': 18})
   # plt.show()
-  # # print "av_reward = ", av_reward
- ##########################################
+  # print "av_reward = ", av_reward
+ #########################################
 
  ######Q2################
   # av_r = np.zeros(4)
@@ -274,7 +289,7 @@ if __name__ == '__main__':
   # matplotlib.rcParams.update({'font.size': 18})
   # plt.show()
 
-  ############## Q3 #############
+  # ############## Q3 #############
   seed_weights = -1*np.ones(25)
   seed_weights[-1] = 10
 
@@ -284,7 +299,10 @@ if __name__ == '__main__':
   learning_rate = 1.9
 
   new_policy = calcMaxEntPolicy(trans_mat,horizon,seed_weights,state_features)
-  print "policy = ", new_policy
+  
+  for i in range(len(new_policy)):
+    print "i =", i, "dir =", np.argmax(new_policy[i,:])
+
 
   # r_weights = maxEntIRL(trans_mat, state_features, demos, seed_weights, n_epochs, horizon, learning_rate)
   # optimal_policy = calcMaxEntPolicy(trans_mat,horizon,r_weights,state_features)
