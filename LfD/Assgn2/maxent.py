@@ -82,14 +82,13 @@ def calcMaxEntPolicy(trans_mat, horizon, r_weights, state_features):
       for j in range(0,n_actions):
         p_update = 0.
         for k in range(0,n_states):
-          p_update = p_update + trans_mat[i][j][k]*z_s[k]
+          p_update = p_update + trans_mat[i][j][k]*z_s[k]*np.exp(reward[i])
 
-        z_a[i][j] = p_update*np.exp(reward[i])
+        z_a[i][j] = p_update
         a_sum = a_sum + z_a[i][j]
 
-      if i == n_states-1:
-        z_s[i] = 1. + a_sum
-      else: z_s[i] = a_sum
+      z_s[i] = a_sum
+    z_s[-1] = 1.
 
   for i in range(0,n_states):
     for j in range(0,n_actions):
@@ -172,9 +171,9 @@ def maxEntIRL(trans_mat, state_features, demos, seed_weights, n_epochs, horizon,
     # print "fcount = ", f_count
 
     delta_L = f_tilde - f_count
-    delta_L[-1] = 0.
+    # delta_L[-1] = 0.
     # print "delta_L =", delta_L
-    # print "delta_L =", np.linalg.norm(delta_L)
+    print "delta_L =", np.linalg.norm(delta_L)
     r_weights = r_weights + learning_rate*delta_L
     l_norm = np.linalg.norm(delta_L)
 
@@ -191,9 +190,9 @@ if __name__ == '__main__':
   seed_weights = np.zeros(25)
   # seed_weights = -1*np.ones(25)
   
-  # # Parameters
+  # # # Parameters
   n_epochs = 100
-  horizon = 10
+  horizon = 100
   learning_rate = 1.5
   
   # Main algorithm call
@@ -219,7 +218,7 @@ if __name__ == '__main__':
 
   
   ############# Q1 #############################
-  # alpha = np.arange(0.0,3.0,0.05)
+  # alpha = np.arange(0.0,3.0,0.5)
   # # # alpha = np.arange(0.0,1.0,0.5)
   # # av_r = np.zeros(len(alpha))
   # # av_r2 = np.zeros(len(alpha))
@@ -257,7 +256,7 @@ if __name__ == '__main__':
   # plt.xlabel('Learning rate')
   # matplotlib.rcParams.update({'font.size': 18})
   # plt.show()
-  # print "av_reward = ", av_reward
+  # # print "av_reward = ", av_reward
  #########################################
 
  ######Q2################
@@ -289,14 +288,14 @@ if __name__ == '__main__':
   # matplotlib.rcParams.update({'font.size': 18})
   # plt.show()
 
-  # ############## Q3 #############
+  # # ############## Q3 #############
   seed_weights = -1*np.ones(25)
   seed_weights[-1] = 10
 
   # Parameters
   n_epochs = 100
   horizon = 100
-  learning_rate = 1.9
+  learning_rate = 1.3
 
   new_policy = calcMaxEntPolicy(trans_mat,horizon,seed_weights,state_features)
   
