@@ -1,9 +1,11 @@
 import numpy as np
 import numpy.random as rand
 import matplotlib.pyplot as plt
-from scipy.siself.gnal import medfilt
+# from scipy.siself.gnal import medfilt
+from tiles import *
+import itertools
 
-class env(object):
+class env():
 	"""docstring for env"""
 	def __init__(self):
 		self.m1 = 1
@@ -44,24 +46,27 @@ class env(object):
 	def r_function(self,cur_state):
 		return -1.
 
+class basis_fn():
+	def fourier(self,cur_state,f_order):
+		n_dim = len(cur_state)
+		x = np.arange(0,f_order+1)
+		c =	[p for p in itertools.product(x, repeat=4)]
+		phi = np.zeros(len(c))
 
-	def tiling(self,action):
+		for i in range(len(c)):
+			phi[i] = np.cos(np.pi*np.sum([c[i][j]*cur_state[j] for j in range(n_dim)]))
 
-		dim1_int = np.linspace(0,2*np.pi,6)
-		dim2_int = np.concatenate((np.linspace(-4*np.pi,4*np.pi,6), [4*np.pi + 8*np.pi/6]))
-		dim3_int = np.linspace(0,2*np.pi,6)
-		dim4_int = np.concatenate((np.linspace(-9*np.pi,9*np.pi,6), [9*np.pi + 18*np.pi/6]))
+		return phi
 
-		tile_set1 = [dim1_int, rand.rand()*2*np.pi/6 + dim1_int, rand.rand()*2*np.pi/6 + dim1_int, dim2_int, rand.rand()*8*np.pi/6 + dim2_int, rand.rand()*8*np.pi/6 + dim2_int, dim3_int, rand.rand()*2*np.pi/6 + dim3_int, rand.rand()*2*np.pi/6 + dim3_int, dim4_int, rand.rand()*18*np.pi/6 + dim4_int, rand.rand()*18*np.pi/6 + dim4_int]
 
 class policy():
-	def e_greedy(self, cur_state,q_value_sarsa):
+	def e_greedy(self, q_value):
 		eps = 0.1
 		p = rand.rand()
 		if p<eps: 
 			action = rand.randint(-1,2,1)
 		else:
-			idx = np.argmax(q_value_sarsa[cur_state[0]][cur_state[1]])
+			idx = np.argmax(q_value)
 
 			if idx == 0:
 				action = -1
@@ -72,16 +77,55 @@ class policy():
 		return action
 
 
-if __name__ == '_main__':
+if __name__ == '__main__':
 	world = env()
 	ctrl = policy()
+	basis = basis_fn()
 
 	n_eps = 1
 	alpha = 0.5
-	disc = 1.0
-
-
+	gamma = 1.0
+	labda = 0.9
+	n_actions = 3
+	
+	f_order = 4
 	cur_state = [0., 0., 0., 0.]
+	phi = basis.fourier(cur_state,f_order)
+	weights = np.zeros(len(phi))
 	tip = [world.l1*np.cos(cur_state[0]) + world.l2*np.cos(cur_state[0] + cur_state[1]), world.l1*np.sin(cur_state[0]) + world.l2*np.sin(cur_state[0] + cur_state[1])]
 
-	## Goal if tip[1] > world.l1
+	Q_old = np.zeros(n_actions)
+	Q = np.zeros(n_actions)
+	new_Q = np.zeros(n_actions)
+	  
+
+	for ep in range	(n_eps):
+		e_vector = np.zeros(len(weights))
+		cur_state = [0., 0., 0., 0.]
+		Q_old = np.zeros(n_actions)
+		phi = basis.fourier(cur_state,f_order)
+
+		while(tip[1] < world.l1):
+			print "yo"
+			action = ctrl.e_greedy(Q_old)
+			new_state = world.simulator(cur_state,action)
+			reward = world.r_function(new_state)
+
+			new_phi = basis.fourier(new_state,f_order)
+
+			Q = np.dot(weights,phi)
+			new_Q = np.dot(weights,new_phi)
+
+			e_vector = gamma*labda*e_vector + (1. - alpha*gamma*labda*np.dot(e_vector,phi))*phi
+			delta = reward + gamma*new_Q - Q
+
+			weights = weights + alpha*(delta + Q - Q_old)*e_vector - alpha*(Q-Q_old)*phi
+
+			Q_old = Q
+			phi = new_phi
+			cur_state = new_state
+
+			tip = [world.l1*np.cos(cur_state[0]) + world.l2*np.cos(cur_state[0] + cur_state[1]), world.l1*np.sin(cur_state[0]) + world.l2*np.sin(cur_state[0] + cur_state[1])]
+
+
+		print "terminal_phi = ", phi

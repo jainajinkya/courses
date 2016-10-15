@@ -3,6 +3,7 @@ import numpy.random as rand
 from mpl_toolkits.mplot3d.axes3d import Axes3D
 import matplotlib.pyplot as plt
 from matplotlib import cm
+from matplotlib import rcParams
 # from scipy.signal import savgol_filter
 from scipy.signal import medfilt
 
@@ -198,15 +199,19 @@ if __name__ == '__main__':
 	x_vec = np.arange(0,n_eps)
 	# filtered_rew_sarsa = savgol_filter(total_reward_sarsa, 5, 1)
 	# filtered_rew_q_learn = savgol_filter(total_reward_q_learn, 5, 1)
-	filtered_rew_sarsa = medfilt(total_reward_sarsa, 9)
+	filtered_rew_sarsa = medfilt(total_reward_sarsa, 11)
 	# filtered_rew_q_learn = medfilt(total_reward_q_learn, 5)
-	plt.plot(x_vec,filtered_rew_sarsa, 'r')
+	line1, = plt.plot(x_vec,filtered_rew_sarsa, 'r', linewidth=3.0)
 	# plt.plot(x_vec,filtered_rew_q_learn, 'b')
 	# plt.plot(x_vec,filt_r_s, 'r')
-	plt.plot(x_vec,filt_r_q, 'b')
+	line2, = plt.plot(x_vec,filt_r_q, 'b', linewidth=3.0)
 	axes = plt.gca()
 	axes.set_xlim([0,n_eps])
 	axes.set_ylim([-100, 0])
+	plt.legend([line1, line2],['SARSA', 'Q-Learning'],loc=2)
+	plt.xlabel('No. of Episodes')
+	plt.ylabel('Total reward in each episode')
+	rcParams.update({'font.size': 18})
 	plt.show()
 
 	# p_value = np.zeros((size_world[0],size_world[1]))
