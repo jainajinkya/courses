@@ -11,7 +11,7 @@ from scipy.signal import medfilt
 
 class grid_world:
 	def __init__(self):
-		self.state = np.zeros((5,12))
+		self.state = np.zeros((7,12))
 		self.t_state = [0, np.shape(self.state)[1]-1]
 
 	def state_update(self, cur_state, action):
@@ -51,27 +51,30 @@ class grid_world:
 
 	def r_function(self,cur_state):
 		cliff = [[0,i] for i in range(1,np.shape(self.state)[1]-1)]
-		reward = -1.
-		
+		reward = -1		
 		# if cur_state == self.t_state:
 		# 	reward = 50.
 
 		for i in range(len(cliff)):
 			if cur_state == cliff[i]:
-				reward = -100.
+				reward = -100
 				break
 
 		return reward
 
 
 class control():
-	def e_greedy(self, cur_state,q_value_sarsa):
-		eps = 0.1
+	def e_greedy(self, st,q_value):
+		eps = 0.3
 		p = rand.rand()
-		if p<eps: 
-			action = rand.randint(0,4)
+		# if p<=eps: 
+		# 	action = rand.randint(0,4)
+		# else:
+		# 	action = np.argmax(q_value[cur_state[0]][cur_state[1]])
+		if p <= 1-eps: 
+			action = np.argmax(q_value[st[0]][st[1]])		
 		else:
-			action = np.argmax(q_value_sarsa[cur_state[0]][cur_state[1]])
+			action = rand.randint(0,4)
 			
 		return action
 
@@ -85,22 +88,18 @@ if __name__ == '__main__':
 	alpha = 0.5
 	disc = 1.0
 
-	# q_value_sarsa = 100*rand.rand(size_world[0],size_world[1],n_actions) # action_set = ['r','l','u','d']
+	# q_value_sarsa = 100*rand.rand(size_world[0],size_world[1],n_actions) # 
+	# q_value_sarsa[world.t_state[0]][world.t_state[1]] = np.zeros(n_actions)
 	q_value_sarsa = np.zeros((size_world[0],size_world[1],n_actions)) 
 	q_value_q_learn = np.zeros((size_world[0],size_world[1],n_actions)) 
-	# q_value_sarsa[world.t_state[0]][world.t_state[1]] = np.zeros(n_actions)
-	
-	max_q_value_sarsa = []
-	max_q_value_q_learn = []
+		
 	total_reward_sarsa = np.zeros(n_eps)
 	total_reward_q_learn = np.zeros(n_eps)
-
-
 
 	for ep in range(n_eps):
 		cur_state = [0,0]
 		counter = 0
-		reward_sarsa = 0.0
+		reward_sarsa = 0
 
 		###### SARSA###########################################
 		action = ctrl.e_greedy(cur_state,q_value_sarsa)
@@ -112,7 +111,7 @@ if __name__ == '__main__':
 
 			q_value_sarsa[cur_state[0],cur_state[1],action] = q_value_sarsa[cur_state[0],cur_state[1],action] + alpha*(reward + disc*q_value_sarsa[new_state[0],new_state[1],new_action] - q_value_sarsa[cur_state[0],cur_state[1],action])
 
-			if reward == -100.:
+			if reward == -100:
 				new_state = [0,0] ## Restarting
 
 			cur_state = new_state
@@ -151,10 +150,15 @@ if __name__ == '__main__':
 		total_reward_q_learn[ep] = reward_q_learn
 
 
-	for i in range(np.shape(q_value_sarsa)[0]):
-		for j in range(np.shape(q_value_sarsa)[1]):
-			max_q_value_sarsa = max_q_value_sarsa + [np.argmax(q_value_sarsa[i][j])]
-			max_q_value_q_learn = max_q_value_q_learn + [np.argmax(q_value_q_learn[i][j])]
+	# for i in range(np.shape(q_value_sarsa)[0]):
+	# 	for j in range(np.shape(q_value_sarsa)[1]):
+	# 		max_q_value_sarsa = max_q_value_sarsa + [np.argmax(q_value_sarsa[i][j])]
+	# 		# max_q_value_q_learn = max_q_value_q_learn + [np.argmax(q_value_q_learn[i][j])]
+	# print len(max_q_value_sarsa)
+	# print max_q_value_sarsa
+
+	max_q_value_sarsa = np.argmax(q_value_sarsa,axis=2)
+	max_q_value_q_learn = np.argmax(q_value_q_learn,axis=2)
 
 	########## Final Trajectory
 
@@ -163,22 +167,35 @@ if __name__ == '__main__':
 	route_sarsa = []
 	route_sarsa = route_sarsa + [cur_state[:]]
 	k = 0
-	print "max_q_value_sarsa", max_q_value_sarsa
-	while(cur_state != world.t_state and k<len(max_q_value_sarsa)):
-		cur_state = world.state_update(cur_state,max_q_value_sarsa[k])
+	while(cur_state != world.t_state and k<1000):
+		cur_state = world.state_update(cur_state,max_q_value_sarsa[cur_state[0], cur_state[1]])
 		route_sarsa = route_sarsa + [cur_state[:]]
 		k = k+1
+		# print "final_path", cur_state
 		
 	print "route_sarsa = ", route_sarsa
 
-	########## Q-Learning ########
+
+	# for i in range(np.shape(q_value_sarsa)[0]):
+	# 	for j in range(np.shape(q_value_sarsa)[1]):
+	# 		cur_state = world.state_update(cur_state,np.argmax(q_value_sarsa[cur_state[0]][cur_state[1]]))
+	# 		print "action_taken = ", np.argmax(q_value_sarsa[i][j])
+	# 		print "final_path", cur_state
+
+	# print "q_value_sarsa[1,1,:]",q_value_sarsa[1,1,:]
+	# print "q_value_sarsa[1][1][:]",q_value_sarsa[1][1][:]
+	# print "q_value_sarsa[1,1,:]",q_value_sarsa[1,1,:]
+
+
+
+	# ########## Q-Learning ########
 	cur_state = [0,0]
 	route_q_learn = []
 	route_q_learn = route_q_learn + [cur_state[:]]
 	k = 0
 
-	while(cur_state != world.t_state and k<len(max_q_value_q_learn)):
-		cur_state = world.state_update(cur_state,max_q_value_q_learn[k])
+	while(cur_state != world.t_state and k<1000):
+		cur_state = world.state_update(cur_state,max_q_value_q_learn[cur_state[0], cur_state[1]])
 		route_q_learn = route_q_learn + [cur_state[:]]
 		k = k+1
 		
@@ -199,18 +216,27 @@ if __name__ == '__main__':
 	x_vec = np.arange(0,n_eps)
 	# filtered_rew_sarsa = savgol_filter(total_reward_sarsa, 5, 1)
 	# filtered_rew_q_learn = savgol_filter(total_reward_q_learn, 5, 1)
-	filtered_rew_sarsa = medfilt(total_reward_sarsa, 11)
+
+	filtered_rew_sarsa = medfilt(total_reward_sarsa, 15)
+
+	m1 = np.mean(filtered_rew_sarsa)*np.ones(len(x_vec))
+	m2 = np.mean(filt_r_q)*np.ones(len(x_vec))
 	# filtered_rew_q_learn = medfilt(total_reward_q_learn, 5)
 	line1, = plt.plot(x_vec,filtered_rew_sarsa, 'r', linewidth=3.0)
 	# plt.plot(x_vec,filtered_rew_q_learn, 'b')
 	# plt.plot(x_vec,filt_r_s, 'r')
 	line2, = plt.plot(x_vec,filt_r_q, 'b', linewidth=3.0)
+	
+	plt.plot(x_vec,m1,'r--', linewidth=3.0)
+	plt.plot(x_vec,m2,'b--', linewidth=3.0)
+
 	axes = plt.gca()
 	axes.set_xlim([0,n_eps])
-	axes.set_ylim([-100, 0])
+	axes.set_ylim([-200, 0])
 	plt.legend([line1, line2],['SARSA', 'Q-Learning'],loc=2)
 	plt.xlabel('No. of Episodes')
 	plt.ylabel('Total reward in each episode')
+	plt.text(5., -25.,'\eps = 0.2', fontsize=18)
 	rcParams.update({'font.size': 18})
 	plt.show()
 
