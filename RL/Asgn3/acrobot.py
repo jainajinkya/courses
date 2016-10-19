@@ -34,14 +34,14 @@ class env():
 		th2_Ddot = (tau + (d2/d1)*phi1 - self.m2*self.l1*self.lc2*th1_Dot**2*np.sin(th2) - phi2)/(self.m2*(self.lc2**2) + self.I2 - d2**2/d1)
 		th1_Ddot = -(d2*th2_Ddot + phi1)/d1
 
-		print "th2_Ddot = ", th2_Ddot
-		print "th1_Ddot = ", th1_Ddot
-		print "d1 = ", d1
-		print "d2 = ", d2
-		print "phi1 =", phi1
-		print "phi2 =", phi2
-		print "self.m2*self.l1*self.lc2*th1_Dot**2*np.sin(th2) = ", self.m2*self.l1*self.lc2*th1_Dot**2*np.sin(th2)
-		print "################################"
+		# print "th2_Ddot = ", th2_Ddot
+		# print "th1_Ddot = ", th1_Ddot
+		# print "d1 = ", d1
+		# print "d2 = ", d2
+		# print "phi1 =", phi1
+		# print "phi2 =", phi2
+		# print "self.m2*self.l1*self.lc2*th1_Dot**2*np.sin(th2) = ", self.m2*self.l1*self.lc2*th1_Dot**2*np.sin(th2)
+		# print "################################"
 
 		# print "internal_tau = ", ((d2/d1)*phi1 - self.m2*self.l1*self.lc2*th1_Dot**2*np.sin(th2) - phi2)/(self.m2*(self.lc2**2) + self.I2 - d2**2/d1)
 
@@ -109,14 +109,15 @@ if __name__ == '__main__':
 	ctrl = policy()
 	basis = basis_fn()
 
-	n_eps = 1
+	n_eps = 20
 	alpha = 0.5
-	gamma = 1.0
+	gamma = 0.95
 	labda = 0.9
 	n_actions = 3
+	t_n_steps = np.zeros(n_eps)
 	
 	f_order = 3
-	cur_state = [-np.pi/2, 0., 0., 0.]
+	cur_state = [0., 0., 0., 0.]
 	phi = basis.fourier(cur_state,f_order)
 	weights = np.zeros((n_actions,len(phi)))
 	alpha2 = basis.alpha_weights(f_order)
@@ -126,59 +127,70 @@ if __name__ == '__main__':
 	# new_Q = np.zeros(n_actions)
 
 	for ep in range	(n_eps):
-		cur_state = [-np.pi/2, 0., 0., 0.]
+		cur_state = [0., 0., 0., 0.]
 		Q_old = 0.
 		phi = basis.fourier(cur_state,f_order)
 		n_steps = 0
-		tip = [world.l1*np.cos(cur_state[0]) + world.l2*np.cos(cur_state[0] + cur_state[1]), world.l1*np.sin(cur_state[0]) + world.l2*np.sin(cur_state[0] + cur_state[1])]
+		tip = [world.l1*np.cos(cur_state[0]-np.pi/2) + world.l2*np.cos(cur_state[0] - np.pi/2 + cur_state[2]), world.l1*np.sin(cur_state[0]- np.pi/2) + world.l2*np.sin(cur_state[0] - np.pi/2 + cur_state[2])]
 		count_action = 0
-		# while(tip[1] < world.l1):
-			# if count_action == 3:
-			# 	action = ctrl.e_greedy(weights,phi)
-			# 	count_action = 0
-			# else:
-			# 	action = 0
-			# 	count_action = count_action + 1
-		action = 0
+		old_weights = np.copy(weights)
 
-		new_state = world.simulator(cur_state,action)
-		reward = world.r_function(new_state)
-		new_phi = basis.fourier(new_state,f_order)
+		while(tip[1] < world.l1):
+			if count_action == 3:
+				action = ctrl.e_greedy(weights,phi)
+				count_action = 0
+			else:
+				action = 0
+				count_action = count_action + 1
 
-		# print "new_state = ", new_state
+			new_state = world.simulator(cur_state,action)
+			reward = world.r_function(new_state)
+			new_phi = basis.fourier(new_state,f_order)
 
-		Q = np.dot(weights[action+1,:],phi)
-		new_Q = np.dot(weights[action+1,:],new_phi)
+			Q = np.dot(weights[action+1,:],phi)
+			new_Q = np.dot(weights[action+1,:],new_phi)
 
-		delta = reward + gamma*new_Q - Q
-		
-		weights[action+1,:] = weights[action+1,:] + delta*np.multiply(alpha2,phi)
+			delta = reward + gamma*new_Q - Q
+			
+			weights[action+1,:] = weights[action+1,:] + delta*np.multiply(alpha2,phi)
 
-		Q_old = Q
-		phi = new_phi
-		cur_state = new_state
+			Q_old = Q
+			phi = new_phi
+			cur_state = new_state
 
-		tip = [world.l1*np.cos(cur_state[0]) + world.l2*np.cos(cur_state[0] + cur_state[1]), world.l1*np.sin(cur_state[0]) + world.l2*np.sin(cur_state[0] + cur_state[1])]
+			tip = [world.l1*np.cos(cur_state[0]-np.pi/2) + world.l2*np.cos(cur_state[0] - np.pi/2 + cur_state[2]), world.l1*np.sin(cur_state[0]- np.pi/2) + world.l2*np.sin(cur_state[0] - np.pi/2 + cur_state[2])]
 
-		n_steps = n_steps + 1
+			n_steps = n_steps + 1
+			# print "n_steps =", n_steps
 
 		print "n_steps =", n_steps
+		# print "update in weights = ", weights - old_weights
+		t_n_steps[ep] = n_steps
+		# print "######################################################################"
 
 	## Final Policy
-	cur_state = [-np.pi/2, 0., 0., 0.]
-	tip = [world.l1*np.cos(cur_state[0]) + world.l2*np.cos(cur_state[0] + cur_state[1]), world.l1*np.sin(cur_state[0]) + world.l2*np.sin(cur_state[0] + cur_state[1])]
+	cur_state = [0., 0., 0., 0.]
+	tip = [world.l1*np.cos(cur_state[0]-np.pi/2) + world.l2*np.cos(cur_state[0] - np.pi/2 + cur_state[2]), world.l1*np.sin(cur_state[0]- np.pi/2) + world.l2*np.sin(cur_state[0] - np.pi/2 + cur_state[2])]
 
 	f = open('data.txt', 'w')
+	f2 = open('data_n_steps.txt','w')
+	f2.write(str(t_n_steps))
+	f2.write('\n')
+	f2.close()
+	counter2 = 0
 
-	while(tip[1] < world.l1):
+	while(tip[1] < world.l1 + 0.6):
 		phi = basis.fourier(cur_state,f_order)
 		action = np.argmax(np.dot(weights,phi))
 		new_state = world.simulator(cur_state,action)
 		cur_state = new_state
 
-		pt1 = [world.l1*np.cos(cur_state[0]) , world.l1*np.sin(cur_state[0])]
-		tip = [world.l1*np.cos(cur_state[0]) + world.l2*np.cos(cur_state[0] + cur_state[1]), world.l1*np.sin(cur_state[0]) + world.l2*np.sin(cur_state[0] + cur_state[1])]
+		pt1 = [world.l1*np.cos(cur_state[0]-np.pi/2) , world.l1*np.sin(cur_state[0]-np.pi/2)]
+		tip = [world.l1*np.cos(cur_state[0]-np.pi/2) + world.l2*np.cos(cur_state[0] - np.pi/2 + cur_state[2]), world.l1*np.sin(cur_state[0]- np.pi/2) + world.l2*np.sin(cur_state[0] - np.pi/2 + cur_state[2])]
 
+		print "tip[1] - world.l1 = ", tip[1] - world.l1
+		counter2 = counter2 + 1
+		print "counter2 = ", counter2
 		f.write(str(pt1[0]))
 		f.write('\t')
 		f.write(str(pt1[1]))
