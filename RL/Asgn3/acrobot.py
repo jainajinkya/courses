@@ -179,7 +179,7 @@ if __name__ == '__main__':
 	f2.close()
 	counter2 = 0
 
-	while(tip[1] < world.l1 + 0.6):
+	while(tip[1] < world.l1  + 0.6):
 		phi = basis.fourier(cur_state,f_order)
 		action = np.argmax(np.dot(weights,phi))
 		new_state = world.simulator(cur_state,action)

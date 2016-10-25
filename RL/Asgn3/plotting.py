@@ -65,7 +65,7 @@ def double_pendulum_plot(data):
 		return line, line1,time_text
 
 	ani = animation.FuncAnimation(fig, animate, range(0,np.size(data,axis=1)),
-	                              interval=5, blit=True, init_func=init)
+	                              interval=1, blit=True, init_func=init)
 	# ani = animation.FuncAnimation(fig, animate, np.linspace(0.,np.size(data,axis=1)-1,endpoint=True),
 	#                               interval=10, blit=True, init_func=init)
 
@@ -77,6 +77,6 @@ def double_pendulum_plot(data):
 if __name__ == "__main__":
 	dat = np.loadtxt('data.txt', delimiter = '\t',unpack=True)
 	print len(dat[0])
-	double_pendulum_plot(dat[:,100:len(dat[0])])
+	double_pendulum_plot(dat[:,len(dat[0])-350:len(dat[0])])
 	# double_pendulum_plot(dat)
 
