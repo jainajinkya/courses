@@ -67,6 +67,8 @@ class basis_fn():
 
 		scaled_state = [cur_state[0]/(2*np.pi), cur_state[1]/(8*np.pi), cur_state[2]/(2*np.pi), cur_state[3]/(18*np.pi)]
 
+		#print "len(c) =", len(c)
+
 		for i in range(len(c)):
 			phi[i] = np.cos(np.pi*np.sum([c[i][j]*scaled_state[j] for j in range(n_dim)]))
 
@@ -88,7 +90,7 @@ class basis_fn():
 
 class policy():
 	def e_greedy(self, weights,phi):
-		eps = 0.
+		eps = 0.0
 		p = rand.rand()
 		if p<eps: 
 			action = rand.randint(-1,2,1)
@@ -109,9 +111,9 @@ if __name__ == '__main__':
 	ctrl = policy()
 	basis = basis_fn()
 
-	n_eps = 20
+	n_eps = 50
 	alpha = 0.5
-	gamma = 0.95
+	gamma = 1.0
 	labda = 0.9
 	n_actions = 3
 	t_n_steps = np.zeros(n_eps)
@@ -152,7 +154,7 @@ if __name__ == '__main__':
 
 			delta = reward + gamma*new_Q - Q
 			
-			weights[action+1,:] = weights[action+1,:] + delta*np.multiply(alpha2,phi)
+			weights[action+1,:] = weights[action+1,:] + delta*np.multiply(alpha2,phi)/25
 
 			Q_old = Q
 			phi = new_phi
@@ -164,11 +166,13 @@ if __name__ == '__main__':
 			# print "n_steps =", n_steps
 
 		print "n_steps =", n_steps
+
 		# print "update in weights = ", weights - old_weights
 		t_n_steps[ep] = n_steps
+		#print "weights = ", weights
 		# print "######################################################################"
-
 	## Final Policy
+	print "final_weights= ", weights
 	cur_state = [0., 0., 0., 0.]
 	tip = [world.l1*np.cos(cur_state[0]-np.pi/2) + world.l2*np.cos(cur_state[0] - np.pi/2 + cur_state[2]), world.l1*np.sin(cur_state[0]- np.pi/2) + world.l2*np.sin(cur_state[0] - np.pi/2 + cur_state[2])]
 
@@ -179,28 +183,28 @@ if __name__ == '__main__':
 	f2.close()
 	counter2 = 0
 
-	while(tip[1] < world.l1  + 0.6):
-		phi = basis.fourier(cur_state,f_order)
-		action = np.argmax(np.dot(weights,phi))
-		new_state = world.simulator(cur_state,action)
-		cur_state = new_state
+	# while(tip[1] < world.l1  + 0.6):
+	# 	phi = basis.fourier(cur_state,f_order)
+	# 	action = np.argmax(np.dot(weights,phi))
+	# 	new_state = world.simulator(cur_state,action)
+	# 	cur_state = new_state
 
-		pt1 = [world.l1*np.cos(cur_state[0]-np.pi/2) , world.l1*np.sin(cur_state[0]-np.pi/2)]
-		tip = [world.l1*np.cos(cur_state[0]-np.pi/2) + world.l2*np.cos(cur_state[0] - np.pi/2 + cur_state[2]), world.l1*np.sin(cur_state[0]- np.pi/2) + world.l2*np.sin(cur_state[0] - np.pi/2 + cur_state[2])]
+	# 	pt1 = [world.l1*np.cos(cur_state[0]-np.pi/2) , world.l1*np.sin(cur_state[0]-np.pi/2)]
+	# 	tip = [world.l1*np.cos(cur_state[0]-np.pi/2) + world.l2*np.cos(cur_state[0] - np.pi/2 + cur_state[2]), world.l1*np.sin(cur_state[0]- np.pi/2) + world.l2*np.sin(cur_state[0] - np.pi/2 + cur_state[2])]
 
-		print "tip[1] - world.l1 = ", tip[1] - world.l1
-		counter2 = counter2 + 1
-		print "counter2 = ", counter2
-		f.write(str(pt1[0]))
-		f.write('\t')
-		f.write(str(pt1[1]))
-		f.write('\t')
-		f.write(str(tip[0]))
-		f.write('\t')
-		f.write(str(tip[1]))
-		f.write('\n')
+	# 	print "tip[1] - world.l1 = ", tip[1] - world.l1
+	# 	counter2 = counter2 + 1
+	# 	print "counter2 = ", counter2
+	# 	f.write(str(pt1[0]))
+	# 	f.write('\t')
+	# 	f.write(str(pt1[1]))
+	# 	f.write('\t')
+	# 	f.write(str(tip[0]))
+	# 	f.write('\t')
+	# 	f.write(str(tip[1]))
+	# 	f.write('\n')
 
-	f.close()
+	# f.close()
 	  
 
 	# for ep in range	(n_eps):
