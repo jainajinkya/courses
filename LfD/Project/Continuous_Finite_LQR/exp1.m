@@ -86,8 +86,8 @@ B = [1 0; 0 1];
 C = [1 0; 0 1];
 Q = 0.1*eye(nState);
 R = 1.0*eye(nInput);
-Q_f = 50*eye(nState);
-labda = 2000;
+Q_f = 20*eye(nState);
+labda = 200;
 
 
 % Extende Matrices
