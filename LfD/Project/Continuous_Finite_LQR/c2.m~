@@ -1,0 +1,69 @@
+clear
+close all
+clc
+
+nState = 2;
+nInput = 2;
+nOutput = 2;
+
+x = [4.0; 2.5];
+t_f = 10;
+
+traj = [x];
+
+A = [1 0; 0 1];
+B = [1 0; 0 1];
+C = [1 0; 0 1];
+Q = 0.5*eye(nState);
+R = 0.5*eye(nInput);
+F = 200*eye(nState);  %Terminal Cost
+
+%% LQR Control
+[K,S2,E] = lqr(A,B,Q,R);
+
+S = zeros(2,2,t_f);
+S(:,:,t_f)= Q;
+
+for t=t_f-1:-1:1
+    % Backward Pass
+    S(:,:,t)= Q + A'*S(:,:,t+1)*A - A'*S(:,:,t+1)*B*((B'*S(:,:,t+1)*B+ R)\(B'*S(:,:,t+1)*A));
+end
+
+for t= 1:t_f
+    u = -(B'*S(:,:,t)*B + R)\(B'*S(:,:,t)*A)*x;
+    % Dynamics
+    x = A*x + B*u;
+    traj = [traj,x];
+    
+end
+
+figure(1);clf;
+scatter(traj(1,:),traj(2,:),'r');
+
+%% LQG Control
+A = [1 0; 0 1];
+B = [1 0; 0 1];
+C = [1 0; 0 1];
+V = 0.1*eye(nState);
+W = 0.1*eye(nOutput);
+
+Q = 0.5*eye(nState);
+R = 0.5*eye(nInput);
+F = 200*eye(nState);
+
+K = zeros(t_f,1);
+L = zeros(t_f,1);
+S = zeros(nState,nState,t_f);
+P = zeros(nState,nState,t_f);
+S(:,:,t_f)= F;
+P(:,:,1)= zeros(nState);
+
+for t=t_f-1:-1:1
+    S(:,:,t) = Q + A'*(S(:,:,t+1) - S(:,:,t+1)*B*((B'*S(:,:,t+1)*B + R)\(B'*S(:,:,t+1))))*A;
+    L(t) = (B'*S(:,:,t+1)*B + R)\(B'*S(:,:,t+1)*A);
+end
+
+for t=2:t_f
+   P(:,:,t) =  A*(P(:,:,t-1) - P(:,:,t-1)*C'*((C*P(:,:,t-1)*C + W)\C*P(:,:,t-1)))*A' + V;
+   K(t) = P(:,:,t-1)*C'/(C*P(:,:,t-1)*);
+end
