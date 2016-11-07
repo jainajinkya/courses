@@ -93,7 +93,10 @@ class basis_fn():
 
 class policy():
     def e_greedy2(self, weights,phi,n_eps):
-        eps = 0.1*np.exp(-n_eps/2)
+        # eps = 0.1*np.exp(-n_eps/2)
+        if n_eps>20:
+            eps = 0.
+        else: eps = 0.1
         # eps = 0.1
         p = rand.rand()
         if p <= 1-eps: 
@@ -116,7 +119,7 @@ if __name__ == '__main__':
     n_actions = 4
     t_n_steps = np.zeros(n_eps)
     
-    f_order = 10
+    f_order = 15
     cur_state = [0,0]
     t_state = [0,world.n_col-1]
     phi = basis.fourier(cur_state,f_order,world)

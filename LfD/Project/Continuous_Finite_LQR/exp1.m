@@ -98,14 +98,12 @@ F = [[Q_f'; zeros(1,nState)]';0 0 labda]';  %Terminal Cost
 
 %% LQR Control
 for t=1:t_f
-    W = 0.5*(5.0-m(1))^2*eye(nOutput)
-%     W = 0.05*eye(nOutput);
-%     C = [1+(5-x(1)),0;(5-x(1)), 1];
+    W = 0.5*(5.0-m(1))^2*eye(nOutput);
     A_ext(3,3) = s;
     
     [K,S3] = finiteLQR(t_f,A_ext,B_ext,Q_ext,R,F);
     u = -K(:,:,t)*[m;s] ;
-    m = A*m + B*u + normrnd(0,s,[nState,1]); %+ gamma*C'*((C*gamma*C' + W)\(C*gamma)); % + normrnd(0,s,[nState,1]);
+    m = A*m + B*u + normrnd(0,s,[nState,1]);
 
     % Covariance Dynamics
     gamma = A*sig*A';
@@ -117,7 +115,6 @@ for t=1:t_f
     sig = gamma - gamma*C'*((C*gamma*C' + W)\(C*gamma));
     traj = [traj, m];
 end
-s
 figure(1);clf;
 plot(traj(1,:),traj(2,:),'r');
 hold on
