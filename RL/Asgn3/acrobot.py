@@ -152,7 +152,7 @@ class policy():
         return action
   
     def e_greedy2(self, weights,phi):
-        eps = 0.1
+        eps = 0.0
         p = rand.rand()
         if p <= 1-eps: 
             action = np.argmax(np.dot(weights,phi))     
@@ -167,7 +167,7 @@ if __name__ == '__main__':
     ctrl = policy()
     basis = basis_fn()
 
-    n_eps = 5
+    n_eps = 500
     alpha = 0.5
     gamma = 0.95
     labda = 0.9
@@ -180,7 +180,7 @@ if __name__ == '__main__':
     phi = basis.fourier(cur_state,f_order)
     weights = np.zeros((n_actions,len(phi)))
     alpha2 = basis.alpha_weights(f_order)
-    t_state = [0,11]
+    t_state = [0,3]
 
     # Q_old = 100.
     # Q = np.zeros(n_actions)
@@ -188,40 +188,44 @@ if __name__ == '__main__':
 
     for ep in range (n_eps):
         cur_state = [0,0]
-        Q_old = 0.
         phi = basis.fourier(cur_state,f_order)
+        action = ctrl.e_greedy2(weights,phi)
         n_steps = 0
         # tip = [world.l1*np.cos(cur_state[0]-np.pi/2) + world.l2*np.cos(cur_state[0] - np.pi/2 + cur_state[2]), world.l1*np.sin(cur_state[0]- np.pi/2) + world.l2*np.sin(cur_state[0] - np.pi/2 + cur_state[2])]
-        count_action = 0
-        old_weights = np.copy(weights)
+        # count_action = 0
+        # old_weights = np.copy(weights)
+
   
         while(cur_state != t_state):
-            action = ctrl.e_greedy2(weights,phi)
+            
             new_state = world.grid_world(cur_state,action)
             reward = world.r_fn2(new_state)
             new_phi = basis.fourier(new_state,f_order)
+            new_action = ctrl.e_greedy2(weights,new_phi)
+
 
             Q = np.dot(weights[action,:],phi)
-            new_Q = np.dot(weights[action,:],new_phi)
+            new_Q = np.dot(weights[new_action,:],new_phi)
 
             delta = reward + gamma*new_Q - Q
             
             # weights[action,:] = weights[action,:] + delta*np.multiply(alpha2,phi)
-            weights[action,:] = weights[action,:] + delta*alpha*phi
+            # weights[action,:] = weights[action,:] + delta*alpha*phi/100
+            weights[action,:] = weights[action,:] + delta*alpha
 
-            Q_old = Q
             phi = new_phi
             cur_state = new_state
+            action = new_action
 
             # tip = [world.l1*np.cos(cur_state[0]-np.pi/2) + world.l2*np.cos(cur_state[0] - np.pi/2 + cur_state[2]), world.l1*np.sin(cur_state[0]- np.pi/2) + world.l2*np.sin(cur_state[0] - np.pi/2 + cur_state[2])]
 
             n_steps = n_steps + 1
-            # print "n_steps =", n_steps
+            #print "n_steps =", n_steps
 
         print "n_steps =", n_steps
         # print "update in weights = ", weights - old_weights
         t_n_steps[ep] = n_steps
-        print "weights = ", weights
+    print "weights = ", weights
 
 #==============================================================================
 #       while(tip[1] < world.l1):
