@@ -86,8 +86,9 @@ B = [1 0; 0 1];
 C = [1 0; 0 1];
 Q = 0.1*eye(nState);
 R = 1.0*eye(nInput);
-Q_f = 20*eye(nState);
-labda = 200;
+Q_f = 500*eye(nState);
+u_max = 0.1;
+labda = 2000;
 
 
 % Extende Matrices
@@ -98,15 +99,20 @@ F = [[Q_f'; zeros(1,nState)]';0 0 labda]';  %Terminal Cost
 
 %% LQR Control
 for t=1:t_f
-    W = 0.5*(5.0-m(1))^2*eye(nOutput)
+    W = 0.5*(5.0-m(1))^2*eye(nOutput);
 %     W = 0.05*eye(nOutput);
 %     C = [1+(5-x(1)),0;(5-x(1)), 1];
     A_ext(3,3) = s;
     
     [K,S3] = finiteLQR(t_f,A_ext,B_ext,Q_ext,R,F);
-    u = -K(:,:,t)*[m;s] ;
-    m = A*m + B*u + normrnd(0,s,[nState,1]); %+ gamma*C'*((C*gamma*C' + W)\(C*gamma)); % + normrnd(0,s,[nState,1]);
-
+    u = -K(:,:,t)*[m;s];
+    
+    if max(u)>u_max
+        u = u_max*(u/norm(u));
+    end
+    
+    m = A*m + B*u + normrnd(0,s,[nState,1]);
+    
     % Covariance Dynamics
     gamma = A*sig*A';
     dsig = sig*(A+A') - gamma*C'*((C*gamma*C' + W)\(C*sig*(A+A'))) + ...
