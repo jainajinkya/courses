@@ -1,9 +1,9 @@
-function [K,S] = finiteLQR(tf,A,B,Q,R,F)
+function [K,S] = finiteLQR(tf,A,B,Q,R,F,t_res)
 nState = size(A,1);
 nInput = size(R,1);
-S = zeros(nState,nState,tf);
+S = zeros(nState,nState,tf/t_res);
 S(:,:,tf)= F;
-K = zeros(nInput,nState,tf);
+K = zeros(nInput,nState,tf/t_res);
 
 for t=tf-1:-1:1
     % Backward Pass
