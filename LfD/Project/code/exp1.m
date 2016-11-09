@@ -99,8 +99,7 @@ F = [[Q_f'; zeros(1,nState)]';0 0 labda]';  %Terminal Cost
 
 %% LQR Control
 for t=1:t_f
-    W = 0.5*(5.0-m(1))^2*eye(nOutput);
-<<<<<<< HEAD
+   W = 0.5*(5.0-m(1))^2*eye(nOutput);
 %     W = 0.05*eye(nOutput);
 %     C = [1+(5-x(1)),0;(5-x(1)), 1];
     A_ext(3,3) = s;
@@ -114,14 +113,6 @@ for t=1:t_f
     
     m = A*m + B*u + normrnd(0,s,[nState,1]);
     
-=======
-    A_ext(3,3) = s;
-    
-    [K,S3] = finiteLQR(t_f,A_ext,B_ext,Q_ext,R,F);
-    u = -K(:,:,t)*[m;s] ;
-    m = A*m + B*u + normrnd(0,s,[nState,1]);
-
->>>>>>> 4ec2bdb937c462158e432044e5f6d473656f2ee4
     % Covariance Dynamics
     gamma = A*sig*A';
     dsig = sig*(A+A') - gamma*C'*((C*gamma*C' + W)\(C*sig*(A+A'))) + ...
@@ -132,9 +123,36 @@ for t=1:t_f
     sig = gamma - gamma*C'*((C*gamma*C' + W)\(C*gamma));
     traj = [traj, m];
 end
+
 figure(1);clf;
-plot(traj(1,:),traj(2,:),'r');
+
+X = [min(traj(1,:)):0.1:max(traj(1,:))];
+Y = [min(traj(2,:)):0.1:max(traj(2,:))];
+
+Im = zeros(length(Y),length(X));
+
+for i=1:size(Im,1)
+    for j=1:size(Im,2)
+        Im(i,j) = -0.5*(5-X(j)) + 2;
+    end
+end
+
+X_scaled = X*(size(Im,2)/length(X));
+Y_scaled = Y*(size(Im,1)/length(Y));
+
+imshow(Im)
 hold on
-plot(traj(1,t_f+1),traj(2,t_f+1),'bx');
+
+%Making X and Y of the same length
+if (length(X_scaled) > length(Y_scaled))
+   Y_scaled = interp1(linspace(1,length(Y_scaled),length(Y_scaled)),Y_scaled,X_scaled);
+    
+elseif (length(Y_scaled) > length(X_scaled))
+    X_scaled = interp1(linspace(1,length(X_scaled),length(X_scaled)),X_scaled,Y_scaled);
+end
+
+% plot(traj(1,:),traj(2,:),'r');
+% plot(traj(1,t_f+1),traj(2,t_f+1),'bx');
+plot(X_scaled,Y_scaled,'r');
 hold off
 
