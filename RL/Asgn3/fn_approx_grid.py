@@ -11,8 +11,8 @@ import itertools
 class env():
     def __init__(self):
         self.dt = 0.05
-        self.n_row = 7
-        self.n_col = 20
+        self.n_row = 25
+        self.n_col = 25
      
     def grid_world(self,cur_State,action):
         n_row = self.n_row
@@ -119,6 +119,7 @@ if __name__ == '__main__':
     n_actions = 4
     t_n_steps = np.zeros(n_eps)
     
+    f = open('data.txt', 'w')
     f_order = 15
     cur_state = [0,0]
     t_state = [0,world.n_col-1]
@@ -134,6 +135,7 @@ if __name__ == '__main__':
         
         n_steps = 0
         counter = 0
+        t_n_steps = np.zeros(n_eps)
   
         while(cur_state != t_state):
             new_state = world.grid_world(cur_state,action)
@@ -173,9 +175,13 @@ if __name__ == '__main__':
             # print "cur_State = ", cur_state
 
         print "n_steps =", n_steps
-        # t_n_steps[ep] = n_steps
+        t_n_steps[ep] = n_steps
         # print "weights = ", weights
     # print "weights = ", weights
+
+    s_st = str(t_n_steps)
+    f.write("No. of Steps \n")
+    f.write(s_st)
 
 
     # for ep in range (n_eps):
@@ -258,7 +264,48 @@ if __name__ == '__main__':
             # print "phi = ", phi
 
     print "q_function =", q_function
+
+    s_q = str(q_function)
+    f.write("\n \n")
+    f.write("Q_function \n")
+    f.write(s_q)
+    f.close()
+    # Plot reward function
+    # fig = plt.figure()
+    # x_vec = np.arange(0,n_eps)
+
+    # filtered_rew_sarsa = medfilt(total_reward_sarsa, 15)
+
+    # m1 = np.mean(filtered_rew_sarsa)*np.ones(len(x_vec))
+    # m2 = np.mean(filt_r_q)*np.ones(len(x_vec))
+    # # filtered_rew_q_learn = medfilt(total_reward_q_learn, 5)
+    # line1, = plt.plot(x_vec,filtered_rew_sarsa, 'r', linewidth=3.0)
+    # # plt.plot(x_vec,filtered_rew_q_learn, 'b')
+    # # plt.plot(x_vec,filt_r_s, 'r')
+    # line2, = plt.plot(x_vec,filt_r_q, 'b', linewidth=3.0)
     
+    # plt.plot(x_vec,m1,'r--', linewidth=3.0)
+    # plt.plot(x_vec,m2,'b--', linewidth=3.0)
+
+    # axes = plt.gca()
+    # axes.set_xlim([0,n_eps])
+    # axes.set_ylim([-200, 0])
+    # plt.legend([line1, line2],['SARSA', 'Q-Learning'],loc=2)
+    # plt.xlabel('No. of Episodes')
+    # plt.ylabel('Total reward in each episode')
+    # plt.text(5., -25.,'\eps = 0.2', fontsize=18)
+    # rcParams.update({'font.size': 18})
+    # plt.show()
+    
+
+
+
+
+
+
+
+
+
     # print "reward_fxn =", reward_fxn
     # fig = plt.figure()
     # ax = fig.add_subplot(111, projection='3d')
