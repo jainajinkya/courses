@@ -1,8 +1,0 @@
-function [m_new,s,sig_new] = phi(A,B,C,W,m,sig,u,k)
-
-for i=1:k
-    []
-
-
-end
-
