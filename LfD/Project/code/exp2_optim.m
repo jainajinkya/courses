@@ -53,6 +53,7 @@ for j=1:10
     end
     m_con(:,:,k) = goal;
     
+    
     % Defining fmincon
     % % % % % optimization vector := [m1,.., mk [nState each], s, u1,..,uk [nInput each]]
     opti_A = [];
