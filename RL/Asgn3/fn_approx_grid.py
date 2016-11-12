@@ -112,7 +112,7 @@ if __name__ == '__main__':
     ctrl = policy()
     basis = basis_fn()
 
-    n_eps = 200
+    n_eps = 100
     alpha = 0.5
     gamma = 1.0
     labda =  0.9 
