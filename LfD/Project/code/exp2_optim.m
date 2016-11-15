@@ -8,7 +8,7 @@ nInput = 2;
 nOutput = 2;
 nCov = nState^2;
 
-T = 5;
+T = 4;
 del = 1;
 k = round(T/del);
 
@@ -43,7 +43,7 @@ end
 m_dash(:,:,end) = goal;
 
 % x0 = [reshape(m_dash(:,:,1:end),[(k)*nState,1]);reshape(sig_dash(1,1,:),[k,1]);reshape(u_dash,[k*nInput,1])];
-x0 = zeros(k*(nState + nInput + 1),1) - 0.25;
+x0 = zeros(k*(nState + 1),1) - 0.25;
 % x0 = xfinal;
 
 
@@ -51,17 +51,19 @@ x0 = zeros(k*(nState + nInput + 1),1) - 0.25;
 % % % % % optimization vector := [m1,.., mk [nState each], s, u1,..,uk [nInput each]]
 opti_A = [];
 opti_B = [];
-opti_Aeq = [eye(nState), zeros(nState,(k-1)*nState+k*(1+nInput));zeros((k-1)*nState,nState),eye((k-1)*nState),zeros((k-1)*nState,k*(nInput+1));...
-    zeros(k,k*nState),eye(k),zeros(k,k*nInput);zeros(k*nInput,k*(nState+1+nInput))];
-opti_Beq = [reshape(m_dash(:,:,1:end),[k*nState,1]);reshape(s_dash(:,1),[k,1]);zeros(k*nInput,1)];
+% opti_Aeq = [eye(nState), zeros(nState,(k-1)*nState+k*(1+nInput));zeros((k-1)*nState,nState),eye((k-1)*nState),zeros((k-1)*nState,k*(nInput+1));...
+%     zeros(k,k*nState),eye(k),zeros(k,k*nInput);zeros(k*nInput,k*(nState+1+nInput))];
+% opti_Beq = [reshape(m_dash(:,:,1:end),[k*nState,1]);reshape(s_dash(:,1),[k,1]);zeros(k*nInput,1)];
+
+opti_Aeq = eye(k*(nState+1));
+opti_Beq = [reshape(m_dash(:,:,1:end),[k*nState,1]);reshape(s_dash(:,1),[k,1])];
 
 lb = -50*ones(size(x0,1),1);
 ub = 50*ones(size(x0,1),1);
-options = optimoptions('fmincon','Display','iter','Algorithm','sqp','ConstraintTolerance',1e-12);
+% options = optimoptions('fmincon','Display','iter','Algorithm','sqp','ConstraintTolerance',1e-12);
 % [xfinal,fval,exitflag] = fmincon(@(x)obj_fn(x,k,Q,R,labda),x0,opti_A,opti_B,opti_Aeq,opti_Beq,lb,ub,[],options);
+options = optimoptions('fmincon','Display','iter','Algorithm','sqp');
 [xfinal,fval,exitflag] = fmincon(@(x)obj_fn(x,k,Q,R,labda),x0,opti_A,opti_B,opti_Aeq,opti_Beq,lb,ub,[]);
-
-
 
 
 %%%%%%%%%%%Visualization%%%%%%%%%

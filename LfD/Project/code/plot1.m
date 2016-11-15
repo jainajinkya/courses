@@ -2,7 +2,7 @@ clear
 close
 clc
 
-traj = importdata('traj_data2.mat');
+traj = importdata('traj_cvx1.mat');
 X = traj(1,:);
 Y = traj(2,:);
 

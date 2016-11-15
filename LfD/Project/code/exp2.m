@@ -12,6 +12,7 @@ nSoln = 100;
 tol = 1e-6;
 
 t_f = 50;
+t_res = 1;
 
 x = [2.5,0]';
 m = [2,2]';
@@ -40,8 +41,8 @@ for t=1:t_f
     W = 0.5*(5.0-m(1))^2*eye(nOutput);
     A_ext(3,3) = s;
     
-    [K,S3] = finiteLQR(t_f,A_ext,B_ext,Q_ext,R,F);
-    u = -K(:,:,t)*[m;s] ;
+    [K,S3] = finiteLQR(t_f,A_ext,B_ext,Q_ext,R,F,t_res);
+    u = -K(:,:,t)*[m;s]
     m = A*m + B*u + normrnd(0,s,[nState,1]);
 
     % Covariance Dynamics
