@@ -2,7 +2,7 @@ clear
 close
 clc
 
-traj = importdata('traj_cvx1.mat');
+traj = importdata('traj_data5.mat');
 X = traj(1,:);
 Y = traj(2,:);
 
@@ -10,7 +10,6 @@ figure(1);clf;
 X_plot = linspace(min(X)-1,max(X)+1);
 Y_plot = linspace(min(Y)-1,max(Y)+1);
 C = ones(length(Y_plot),length(X_plot));
-
 
 for i=1:size(C,1)
     for j=1:size(C,2)
@@ -24,7 +23,6 @@ shading interp
 % axis([-1,7,-2,5])
 hold on
 
-
 % %% Normal Plot
 % figure(3);
 % hold on
@@ -32,6 +30,7 @@ hold on
 plot(traj(1,:),traj(2,:),'r--','LineWidth',2);
 % scatter(X,Y);
 plot(traj(1,1),traj(2,1),'mo', 'markers',12);
+
 plot(traj(1,end),traj(2,end),'gx','markers',12);
 
 title('Trajectory of the Robot')
@@ -39,6 +38,9 @@ xlabel('x')
 ylabel('y')
 
 hold off
+
+%%
+
 % 
 %% Smooth Trajectory
 % figure(4)
