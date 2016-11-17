@@ -2,7 +2,7 @@ clear
 close
 clc
 
-traj = importdata('traj_data5.mat');
+traj = importdata('traj_data_new1.mat');
 X = traj(1,:);
 Y = traj(2,:);
 
@@ -33,7 +33,7 @@ plot(traj(1,1),traj(2,1),'mo', 'markers',12);
 
 plot(traj(1,end),traj(2,end),'gx','markers',12);
 
-title('Trajectory of the Robot')
+title('Trajectory of the Belief Mean')
 xlabel('x')
 ylabel('y')
 

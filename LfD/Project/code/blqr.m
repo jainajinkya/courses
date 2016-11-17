@@ -10,13 +10,12 @@ nCov = nState^2;
 nSoln = 100;
 tol = 1e-6;
 
-t_f = 10;
+t_f = 50;
 t_res = 1;
 
 x = [2.5,0]';
 m = [2,2]';
 sig = 5*eye(nState);
-% s = sig(1,1);
 u = zeros(2,1);
 
 traj = [m];
@@ -27,41 +26,37 @@ A = [1 0; 0 1];
 B = [1 0; 0 1];
 C = [1 0; 0 1];
 Q = 0.1*eye(nState);
-% Q = zeros(nState);
 R = 0.5*eye(nInput);
-Q_f = 10*eye(nState);%20*eye(nState);
-u_max = 0.1;
-labda = 200;
+Q_f = 2*eye(nState);
+labda = 2000;
 
 
 % Extende Matrices
-A_ext = [[A'; 1e-16*ones(1,nState)]';0 0 0]';
+A_ext = [[A'; zeros(1,nState)]';0 0 0]';
 B_ext = [B; 0 0];
 Q_ext = [[Q'; zeros(1,nState)]';0 0 10]' ;
-
-%% Rollout MAtrices
-A_ext_dummy = A_ext;
-K = zeros(nInput,nState+1,t_f/t_res);
 F = [[Q_f'; zeros(1,nState)]';0 0 labda]';  %Terminal Cost
 %% LQR Control
 count = 1;
 for t=1:t_res:t_f  
     W = 0.5*(5.0-m(1))^2*eye(nOutput);
     gamma = A*sig*A';
-    dsig = sig*(A+A') - gamma*C'*((C*gamma*C' + W)\(C*sig*(A+A'))) + ...
-        gamma*C'*((C*gamma*C' + W)\(C*sig*(A+A')*C'))*((C*gamma*C' + W)\(C*gamma))...
-        - sig*(A+A')*C'*((C*gamma*C' + W)\(C*gamma));
+    dg_dsig= A*A';
+    ds_dsig = dg_dsig - dg_dsig*C'*(inv(C*gamma*C' + W)*(C*gamma)) ...
+              + gamma*C'*(inv(C*gamma*C' + W)*(C*dg_dsig*C')*inv(C*gamma*C' + W)*(C*gamma)) ...
+              - gamma*C'*(inv(C*gamma*C' + W)*(C*dg_dsig));
+
+    d_s_m = gamma*C'*(inv(C*gamma*C' + W)*((m(1)-5)*eye(size(W)))*inv(C*gamma*C' + W)*(C*gamma));
     
-    s = dsig(1,1);
-    d_s_m = gamma*C'*((C*gamma*C' + W)\((m(1)-5)*eye(size(W)))*(C*gamma*C' + W)\(C*gamma));
-%     A_ext(3,:) = [d_s_m(1,1) 0 s];
-    A_ext(3,3) = s;
+    A_ext(3,:) = [d_s_m(1,1) 0  ds_dsig(1,1)];
+
        
     [K,S3] = finiteLQR(t_f/t_res,A_ext,B_ext,Q_ext,R,F,t_res);
-    u = -K(:,:,count)*[m;s];
- 
-    m = A*m + B*u + normrnd(0,sig(1,1),[nState,1]);   
-    sig = gamma - gamma*C'*((C*gamma*C' + W)\(C*gamma));  
+    
+    u = -K(:,:,count)*[m;sig(1,1)];
+        
+    m = A*m + B*u + normrnd(0,0.1,[nState,1]);   
+    sig = gamma - gamma*C'*((C*gamma*C' + W)\(C*gamma));
     
     % Data saving
     traj = [traj, m];
@@ -70,20 +65,27 @@ for t=1:t_res:t_f
 end
 
 
-%% Plot smooth trajectory
-nPts = 10;
-xNew = [traj(1,1)];
-yNew = [traj(2,1)];
-for i=1:size(traj,2)-1
-    dummy = linspace(traj(1,i),traj(1,i+1),nPts);
-    xNew = [xNew,dummy(2:end)];
-    dummy = linspace(traj(2,i),traj(2,i+1),nPts);
-    yNew = [yNew,dummy(2:end)];
-end
-
-% yy = spline(traj(1,:),traj(2,:),xNew);
+% %% Plot smooth trajectory
+% nPts = 20;
+% xNew = [traj(1,1)];
+% yNew = [traj(2,1)];
+% for i=1:size(traj,2)-1
+%     dummy = linspace(traj(1,i),traj(1,i+1),nPts);
+%     xNew = [xNew,dummy(2:end)];
+%     dummy = linspace(traj(2,i),traj(2,i+1),nPts);
+%     yNew = [yNew,dummy(2:end)];
+% end
+% yy = spline(traj(1,1:4),traj(2,1:4),traj(1,1:4));
+% yy = fit(traj(1,:)',traj(2,:)','cubicinterp');
+% yy = csaps(traj(1,:),traj(2,:),0.5,traj(1,:));
 % polyfit_y = polyfit(traj(1,:),traj(2,:),4);
 % yy = polyval(polyfit_y,xNew);
+
+xx = medfilt1(traj(1,:),10);
+yy = medfilt1(traj(2,:),10);
+xx = [traj(1,1),xx(4:end),traj(1,end)];
+yy = [traj(2,1),yy(4:end),traj(2,end)];
+traj2 = [xx;yy];
 
 figure(1);
 hold on
@@ -94,9 +96,13 @@ plot(traj(1,1),traj(2,1),'mo');
 plot(traj(1,end),traj(2,end),'bx');
 hold off
 
-% figure(2)
-% plot(xNew,yy,'b');
-save('traj_data5.mat', 'traj');
+figure(2)
+% plot(yy,traj(1,:),traj(2,:),'b');
+plot(xx,yy,'r');
+hold on
+plot(traj(1,1),traj(2,1),'mo');
+plot(traj(1,end),traj(2,end),'bx');
+save('traj_data_new1.mat', 'traj2');
 
 % %% Visualize the value function
 % figure(2)
