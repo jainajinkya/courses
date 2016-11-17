@@ -54,13 +54,12 @@ for t=1:t_res:t_f
     
     s = dsig(1,1);
     d_s_m = gamma*C'*((C*gamma*C' + W)\((m(1)-5)*eye(size(W)))*(C*gamma*C' + W)\(C*gamma));
-%     A_ext(3,:) = [d_s_m(1,1) 0 s];
-    A_ext(3,3) = s;
+    A_ext(3,:) = [d_s_m(1,1) 0 s];
        
     [K,S3] = finiteLQR(t_f/t_res,A_ext,B_ext,Q_ext,R,F,t_res);
     u = -K(:,:,count)*[m;s];
  
-    m = A*m + B*u + normrnd(0,sig(1,1),[nState,1]);   
+    m = A*m + B*u% + normrnd(0,0.05,[nState,1]); % + normrnd(0,s,[nState,1]);   
     sig = gamma - gamma*C'*((C*gamma*C' + W)\(C*gamma));  
     
     % Data saving
