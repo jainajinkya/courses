@@ -10,13 +10,14 @@ nCov = nState^2;
 nSoln = 100;
 tol = 1e-6;
 
-t_f = 50;
+t_f = 100;
 t_res = 1;
 
 x = [2.5,0]';
 m = [2,2]';
 sig = 5*eye(nState);
 u = zeros(2,1);
+u_max = 100;;
 
 traj = [m];
 traj_wo_err = [m];
@@ -25,10 +26,10 @@ U = [u];
 A = [1 0; 0 1];
 B = [1 0; 0 1];
 C = [1 0; 0 1];
-Q = 0.1*eye(nState);
+Q = 0.01*eye(nState);
 R = 0.5*eye(nInput);
-Q_f = 2*eye(nState);
-labda = 2000;
+Q_f = 20*eye(nState);
+labda = 200;
 
 
 % Extende Matrices
@@ -38,8 +39,8 @@ Q_ext = [[Q'; zeros(1,nState)]';0 0 10]' ;
 F = [[Q_f'; zeros(1,nState)]';0 0 labda]';  %Terminal Cost
 %% LQR Control
 count = 1;
-for t=1:t_res:t_f  
-    W = 0.5*(5.0-m(1))^2*eye(nOutput);
+for t=1:t_res:t_f-1  
+    W = 0.5*(5.0-x(1))^2*eye(nOutput);
     gamma = A*sig*A';
     dg_dsig= A*A';
     ds_dsig = dg_dsig - dg_dsig*C'*(inv(C*gamma*C' + W)*(C*gamma)) ...
@@ -51,10 +52,25 @@ for t=1:t_res:t_f
     A_ext(3,:) = [d_s_m(1,1) 0  ds_dsig(1,1)];
 
        
-    [K,S3] = finiteLQR(t_f/t_res,A_ext,B_ext,Q_ext,R,F,t_res);
+    %[K,S3] = finiteLQR(t_f/t_res-t+1,A_ext,B_ext,Q_ext,R,F,t_res);
+    [K,S3] = finiteLQR(t_f,A_ext,B_ext,Q_ext,R,F,t_res);    
     
-    u = -K(:,:,count)*[m;sig(1,1)];
+    u = -K(:,:,count)*[m;sig(1,1)]
+    K(:,:,count)
+    [m;sig(1,1)]'*S3(:,:,count+1)*[m;sig(1,1)]
+%     u = -K(:,:,1)*[m;sig(1,1)];
+    
+%     % Controlling Maximum control
+%     
+    for j=1:nInput
+        if abs(u(j)) > u_max
+            u(j) = (u(j)/abs(u(j)))*u_max;
+        end
+    end
         
+     
+    %% System Dynamics:
+    x = A*(x-m) + A*m + B*u;
     m = A*m + B*u + normrnd(0,0.1,[nState,1]);   
     sig = gamma - gamma*C'*((C*gamma*C' + W)\(C*gamma));
     
@@ -83,6 +99,9 @@ end
 
 xx = medfilt1(traj(1,:),10);
 yy = medfilt1(traj(2,:),10);
+% yy = spline(traj(1,:),traj(2,:),xx);
+% yy = fit(traj(1,:)',traj(2,:)','cubicinterp');
+% yy = csaps(traj(1,:),traj(2,:),0.5,xx);
 xx = [traj(1,1),xx(4:end),traj(1,end)];
 yy = [traj(2,1),yy(4:end),traj(2,end)];
 traj2 = [xx;yy];
