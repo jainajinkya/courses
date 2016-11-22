@@ -32,11 +32,35 @@ Q_f = 20*eye(nState);
 labda = 2000;
 
 
-% Extende Matrices
-A_ext = [[A'; zeros(1,nState)]';0 0 0]';
-B_ext = [B; 0 0];
-Q_ext = [[Q'; zeros(1,nState)]';0 0 10]' ;
+%% Model Dynamics
+nModel = 3;
+nGauss = 5;
+
+mu = zeros(nState,nGauss);
+cov = zeros(nState,nState,nGauss);
+mA = zeros(nState,nState,nModel);
+mB = zeros(nState,nState,nModel);
+mA_ext = zeros(nState+1,nState,nModel);
+mB_ext = zeros(nState,nState,nModel);
+
+for i=1:nGauss
+   mu(:,i) = [2,2]' + normrnd(0,0.1,[nState,1]);  
+   cov(:,:,i) = sig + normrnd(0,0.1)*eye(nState);
+end
+
+for i=1:nModel
+   mA(:,:,i) = eye(nState) + normrnd(0,0.1)*eye(nState);
+   mB(:,:,i) = eye(nState) + normrnd(0,0.1)*eye(nState);
+   mA_ext = [[mA(:,:,i)'; zeros(1,nState)]';0 0 0]';
+   mB_ext = [mB(:,:,i); 0 0];
+end
+
+
+%% Extended Matrices
+Q_ext = [[Q'; zeros(1,nState)]';0 0 0]' ;
 F = [[Q_f'; zeros(1,nState)]';0 0 labda]';  %Terminal Cost
+
+
 %% LQR Control
 count = 1;
 for t=1:t_res:t_f-1  
