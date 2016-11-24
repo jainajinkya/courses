@@ -33,10 +33,10 @@ expressions C(2,2) gamma(2,2)
 minimize( sum(J) )
 subject to
 C = [1 0; 0 1];
-    gamma = A*sig*A';
+gamma = A*sig*A';
 
 for i=1:k-1
-    W = (0.5*(5.0-m(1,1))^2)*eye(nM);
+%     W = (0.5*(5.0-m(1,1))^2)*eye(nM);
     det_inv(C);
     for t=1:delta
         m_dummy = m_dummy + A*m_dummy + B*u(:,k) + normrnd(0,0.1,[2,1]);
