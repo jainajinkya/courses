@@ -38,11 +38,11 @@ u_new = reshape(u_new,[nInput*nSegments,1]);
 
 x_new = [m_new;s_new;u_new];
 
-% ceq = x_new - x
+% ceq = x_new - x;
 % c = [];
 
-delta = 1;
+delta = 10.0;
 ceq = [];
-c = x_new - x - delta*ones(size(x0,1));
+c = [x_new - x - delta*ones(size(x0,1),1); x - x_new - delta*ones(size(x0,1),1)];
 
 end
