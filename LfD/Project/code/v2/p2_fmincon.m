@@ -45,7 +45,7 @@ ub = 10*ones(size(x0,1),1);
 nonlcon = @(x)covCons(x,x0,nState,nInput,nSegments,delta);
 
 % options = optimoptions('fmincon','Display','iter','Algorithm','sqp','MaxFunctionEvaluations',50000);
-options = optimoptions('fmincon','Display','iter','Algorithm','sqp');
+options = optimoptions('fmincon','Algorithm','sqp');
 [xfinal,fval,exitflag] = fmincon(@(x)obj_fn(x,nState,nSegments,Q,R,labda,goal),x0,opti_A,opti_B,opti_Aeq,opti_Beq,lb,ub,nonlcon,options);
 
 

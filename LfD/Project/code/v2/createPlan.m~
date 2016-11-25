@@ -1,0 +1,3 @@
+function [u_plan,mu_f,si] = createPlan(mu,sig,t_f)
+
+end
