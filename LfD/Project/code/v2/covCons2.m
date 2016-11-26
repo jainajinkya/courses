@@ -1,4 +1,4 @@
-function [c,ceq] = covCons2(x,x0,mA,mB,mC,wts,nGauss,nInput,nSegments,delta)
+function [c,ceq] = covCons2(x,x0,mA,mB,mC,wts,nGauss,nInput,nSegments,delta,constraintRelax)
 nState = size(mA,1);
 
 % m = x(1:nState*nGauss*nSegments,:);
@@ -41,8 +41,8 @@ x_new = [m_new;s_new;u_new];
 % ceq = x_new - x;
 % c = [];
 
-delta = 10.0;
+% constraintRelax = 10.0;
 ceq = [];
-c = [x_new - x - delta*ones(size(x0,1),1); x - x_new - delta*ones(size(x0,1),1)];
+c = [x_new - x - constraintRelax*ones(size(x0,1),1); x - x_new - constraintRelax*ones(size(x0,1),1)];
 
 end

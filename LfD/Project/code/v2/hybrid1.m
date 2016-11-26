@@ -1,4 +1,4 @@
-clear
+% clear
 close all
 clc
 
@@ -51,21 +51,22 @@ labda = 2000;
 
 %% Optimization
 %Optimization routine
-x0 = rand(((nState+1)*nGauss +nInput)*nSegments,1);
-x0(1:nState*nGauss,1) = reshape(mu,[nState*nGauss,1]);
-x0(nState*nGauss*nSegments+1:nState*nGauss*nSegments+nGauss,1) = cov(1,1,:);
-x0((nState+1)*nGauss*nSegments+1:(nState+1)*nGauss*nSegments+nInput,1) = u0;
-
+% x0 = rand(((nState+1)*nGauss +nInput)*nSegments,1);
+% x0(1:nState*nGauss,1) = reshape(mu,[nState*nGauss,1]);
+% x0(nState*nGauss*nSegments+1:nState*nGauss*nSegments+nGauss,1) = cov(1,1,:);
+% x0((nState+1)*nGauss*nSegments+1:(nState+1)*nGauss*nSegments+nInput,1) = u0;
+% 
 opti_A = [];
 opti_B = [];
 opti_Aeq = [];
 opti_Beq = [];
 lb = -20*ones(size(x0,1),1);
 ub = 20*ones(size(x0,1),1);
-nonlcon = @(x)covCons2(x,x0,mA,mB,mC,wts,nGauss,nInput,nSegments,delta);
+constraintRelax = 10.0;
+nonlcon = @(x)covCons2(x,x0,mA,mB,mC,wts,nGauss,nInput,nSegments,delta,constraintRelax/4);
 
-% options = optimoptions('fmincon','Display','iter','Algorithm','sqp','MaxFunctionEvaluations',50000);
-options = optimoptions('fmincon','Display','iter','Algorithm','sqp');
+options = optimoptions('fmincon','Display','iter','Algorithm','sqp','MaxFunctionEvaluations',1000000);
+% options = optimoptions('fmincon','Display','iter','Algorithm','sqp');
 [xfinal,fval,exitflag] = fmincon(@(x)obj_fn(x,nState,nSegments,Q,R,labda,goal),x0,opti_A,opti_B,opti_Aeq,opti_Beq,lb,ub,nonlcon,options)
 % 
 % [xfinal,fval,exitflag] = fmincon(@(x)0,x0,opti_A,opti_B,opti_Aeq,opti_Beq,lb,ub,nonlcon,options)
@@ -144,29 +145,3 @@ options = optimoptions('fmincon','Display','iter','Algorithm','sqp');
 %    mA_ext = [[mA(:,:,i)'; zeros(1,nState)]';0 0 0]';
 %    mB_ext = [mB(:,:,i); 0 0];
 % end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
