@@ -7,8 +7,8 @@ nState = 2;
 nInput = 2;
 nOutput = 2;
 
-T = 50;
-delta = 1;
+T = 100;
+delta = 2;
 nSegments = round(T/delta);
 
 
@@ -40,13 +40,13 @@ opti_A = [];
 opti_B = [];
 opti_Aeq = [];
 opti_Beq = [];
-lb = -10*ones(size(x0,1),1);
-ub = 10*ones(size(x0,1),1);
+lb = [-10*ones((nState+1)*nSegments,1);-0.05*ones(nInput*nSegments,1)];
+ub = [10*ones((nState+1)*nSegments,1);0.05*ones(nInput*nSegments,1)];
 nonlcon = @(x)covCons(x,x0,nState,nInput,nSegments,delta);
 
 % options = optimoptions('fmincon','Display','iter','Algorithm','sqp','MaxFunctionEvaluations',50000);
 options = optimoptions('fmincon','Algorithm','sqp');
-[xfinal,fval,exitflag] = fmincon(@(x)obj_fn(x,nState,nSegments,Q,R,labda,goal),x0,opti_A,opti_B,opti_Aeq,opti_Beq,lb,ub,nonlcon,options);
+[xfinal,fval,exitflag] = fmincon(@(x)obj_fn(x,nState,nSegments,Q,R,labda,goal),x0,opti_A,opti_B,opti_Aeq,opti_Beq,lb,ub,nonlcon,options)
 
 
 %%%%%%%%%%%Visualization%%%%%%%%%
@@ -65,8 +65,8 @@ end
 % 
 % traj
 
-xx = medfilt1(traj(1,:),10);
-yy = medfilt1(traj(2,:),10);
+xx = medfilt1(traj(1,:),2);
+yy = medfilt1(traj(2,:),2);
 % yy = spline(traj(1,:),traj(2,:),xx);
 % yy = fit(traj(1,:)',traj(2,:)','cubicinterp');
 % yy = csaps(traj(1,:),traj(2,:),0.5,xx);

@@ -17,7 +17,7 @@ x = [2.5,0]';
 m = [2,2]';
 sig = 5*eye(nState);
 u = zeros(2,1);
-u_max = 1;
+u_max = 0.05;
 
 traj = [m];
 traj_wo_err = [m];
@@ -26,19 +26,20 @@ U = [u];
 A = [1 0; 0 1];
 B = [1 0; 0 1];
 C = [1 0; 0 1];
-Q = 0.01*eye(nState);
+Q = 0.5*eye(nState);
 R = 0.5*eye(nInput);
-Q_f = 20*eye(nState);
+Q_f = 100*eye(nState);
 labda = 2000;
 
 
 % Extende Matrices
 A_ext = [[A'; zeros(1,nState)]';0 0 0]';
 B_ext = [B; 0 0];
-Q_ext = [[Q'; zeros(1,nState)]';0 0 10]' ;
+Q_ext = [[Q'; zeros(1,nState)]';0 0 0]' ;
 F = [[Q_f'; zeros(1,nState)]';0 0 labda]';  %Terminal Cost
 %% LQR Control
 count = 1;
+c2 = 0;
 for t=1:t_res:t_f-1  
     W = 0.5*(5.0-x(1))^2*eye(nOutput);
     gamma = A*sig*A';
@@ -53,19 +54,24 @@ for t=1:t_res:t_f-1
 
        
     %[K,S3] = finiteLQR(t_f/t_res-t+1,A_ext,B_ext,Q_ext,R,F,t_res);
-    [K,S3] = finiteLQR(t_f,A_ext,B_ext,Q_ext,R,F,t_res);    
     
-    u = -K(:,:,count)*[m;sig(1,1)]
-    K(:,:,count)
-    [m;sig(1,1)]'*S3(:,:,count+1)*[m;sig(1,1)]
+    if(rem(c2,2)==0)
+        [K,S3] = finiteLQR(t_f-count+1,A_ext,B_ext,Q_ext,R,F,t_res); 
+        c2 = 0;
+    end
+    
+    S3
+    u = -K(:,:,c2+1)*[m;sig(1,1)];
+    
+%     K(:,:,count)
+%     [m;sig(1,1)]'*S3(:,:,count+1)*[m;sig(1,1)];
 %     u = -K(:,:,1)*[m;sig(1,1)];
-    
 %     % Controlling Maximum control
 %     
     for j=1:nInput
-        if abs(u(j)) > u_max
+%         if abs(u(j)) > u_max
             u(j) = (u(j)/abs(u(j)))*u_max;
-        end
+%         end
     end
         
      
@@ -78,6 +84,7 @@ for t=1:t_res:t_f-1
     traj = [traj, m];
     U = [U, u];
     count = count+1;
+    c2 = c2+1;
 end
 
 
