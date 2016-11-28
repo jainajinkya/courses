@@ -48,7 +48,7 @@ class system():
         W = 0.5*np.power((5.0-x[1]),2)*np.eye(self.nState)
         for k in range(self.nGauss):
             for i in range(self.nModel):
-                muSet[:,k,i] = self.mA[:,:,i].dot(mu) + self.mB[:,:,i].dot(u)
+                muSet[:,k,i] = np.transpose(self.mA[:,:,i].dot(mu) + self.mB[:,:,i].dot(u))
                 gamma = matmul(matmul(self.mA[:,:,i],cov[:,:,k]),np.transpose(self.mA[:,:,i]));
                 covSet[:,:,k,i] = gamma - matmul(matmul(gamma,np.transpose(self.mC[:,:,i])),matmul((inv(matmul(matmul(self.mC[:,:,i],gamma),np.transpose(self.mC[:,:,i])) + W)),np.matmul(self.mC[:,:,i],gamma)));
 
@@ -139,8 +139,8 @@ if __name__ == '__main__':
     basis = basis_fn(world,15)
     ctrl = policy()
     
-    x = np.transpose(np.array([2.,2.]))
-    u = np.zeros(world.nInput)
+    x = np.transpose(np.array([2.,0.]))
+    u = np.zeros([world.nInput,1])
     mu = np.zeros([world.nState,world.nGauss])
     cov = np.zeros([world.nState,world.nState,world.nGauss])
    
@@ -148,8 +148,10 @@ if __name__ == '__main__':
         mu[:,i] = np.transpose(np.array([2.,2.]))  
         cov[:,:,i] = 5*np.eye(world.nState)
 
-    [mu,cov] = world.beliefUpdate(x,mu,cov,u)
-    print mu,cov
+    for j in range(50):
+        [mu,cov] = world.beliefUpdate(x,mu,cov,u)
+        print "mu =", mu
+    print "cov = ", cov
     
     
     
