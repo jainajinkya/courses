@@ -11,45 +11,79 @@ import itertools
 class env():
     def __init__(self):
         self.dt = 0.05
-        self.n_row = 25
-        self.n_col = 25
+        self.n_row = 100
+        self.n_col = 100
+        self.t_state = [0,world.n_col-1,1]
      
     def grid_world(self,cur_state,action):
         n_row = self.n_row
         n_col = self.n_col
-        new_state = [cur_state[0],cur_state[1]]
+        new_state = [cur_state[0],cur_state[1],cur_state[2]]
 
-        if action == 0:
-            if cur_state[1]< (n_col-1):
-                new_state[1] = cur_state[1] + 1
-            else:
-                new_state[1] = cur_state[1]
+        ## For model state=0, the actions are [r,l,u,d]
+        if cur_state[2] == 0:
+            if action == 0:
+                if cur_state[1]< (n_col-1):
+                    new_state[1] = cur_state[1] + 1
+                else:
+                    new_state[1] = cur_state[1]
+    
+            if action == 1:
+                if cur_state[1] > 0:
+                    new_state[1] = cur_state[1] - 1
+                else:
+                    new_state[1] = cur_state[1]
+    
+            if action == 2:
+                if cur_state[0] < (n_row-1):
+                    new_state[0] = cur_state[0] + 1
+                else:
+                    new_state[0] = cur_state[0]
+    
+            if action == 3:
+                if cur_state[0] > 0:
+                    new_state[0] = cur_state[0] - 1
+                else:
+                    new_state[0] = cur_state[0]
 
-        if action == 1:
-            if cur_state[1] > 0:
-                new_state[1] = cur_state[1] - 1
-            else:
-                new_state[1] = cur_state[1]
+        elif cur_state[2] == 1:
+#            if cur_state[2] == 1:   ## For model state=1, we are reversing the direction of the motion so now actions are [r,l,d,u] with a small probability
+            if action == 0:
+                if cur_state[1]< (n_col-1):
+                    new_state[1] = cur_state[1] + 1
+                else:
+                    new_state[1] = cur_state[1]
 
-        if action == 2:
-            if cur_state[0] < (n_row-1):
-                new_state[0] = cur_state[0] + 1
-            else:
-                new_state[0] = cur_state[0]
+            if action == 1:
+                if cur_state[1] > 0:
+                    new_state[1] = cur_state[1] - 1
+                else:
+                    new_state[1] = cur_state[1]
 
-        if action == 3:
-            if cur_state[0] > 0:
-                new_state[0] = cur_state[0] - 1
-            else:
-                new_state[0] = cur_state[0]
+            if action == 3:
+                if cur_state[0] < (n_row-1):
+                    new_state[0] = cur_state[0] + 1
+                else:
+                    new_state[0] = cur_state[0]
+
+            if action == 2:
+                if cur_state[0] > 0:
+                    new_state[0] = cur_state[0] - 1
+                else:
+                    new_state[0] = cur_state[0]
+
+    
+        if new_state[1] > (n_col/2):   ## Update in the Model State
+            new_state[2] = 1;
+        else: new_state[2] = 0;
 
         return new_state
       
     def r_fn2(self,cur_state):
         cliff = [[0,i] for i in range(1,self.n_col-1)]
         reward = -1 
-        # if cur_state == self.t_state:
-        #   reward = 50.
+        if cur_state == self.t_state:
+            reward = 50.
 
         for i in range(len(cliff)):
             if cur_state == cliff[i]:
@@ -68,9 +102,11 @@ class basis_fn():
         n_row = world.n_row
         n_col = world.n_col
 
-        scaled_state = [cur_state[0]/(2*np.pi*n_row), cur_state[1]/(2*np.pi*n_col)]
+        scaled_state = [cur_state[0]/(2*np.pi*n_row), cur_state[1]/(2*np.pi*n_col),cur_state[2]]
 
         for i in range(len(c)):
+            # print "dim =", n_dim
+            # print "term =", c
             phi[i] = np.cos(np.pi*np.sum([c[i][j]*scaled_state[j] for j in range(n_dim)]))
             # phi[i] = np.cos(np.pi*np.sum([c[i][j]*cur_state[j] for j in range(n_dim)]))
 
@@ -94,7 +130,7 @@ class basis_fn():
 class policy():
     def e_greedy2(self, weights,phi,n_eps):
         # eps = 0.1*np.exp(-n_eps/2)
-        if n_eps>15:
+        if n_eps>20:
             eps = 0.
         else: eps = 0.1
         # eps = 0.1
@@ -114,48 +150,28 @@ if __name__ == '__main__':
 
     n_eps = 200
     alpha = 0.5
-    gamma = 0.9
+    gamma = 1.0
     labda =  0.9 
     n_actions = 4
-    f_order = 30
+    t_n_steps = np.zeros(n_eps)
     
-    f = open('data.txt', 'w') 
-    
-    f.write("n_eps = ")
-    f.write(str(n_eps))
-    f.write("\t alpha = ")
-    f.write(str(alpha))
-    f.write("\t gamma = ")
-    f.write(str(gamma))
-    f.write("\t labda = ")
-    f.write(str(labda))
-    f.write("\t f_order = ")
-    f.write(str(f_order))
-    f.write("\t world size = ")
-    f.write(str(world.n_row))
-    f.write(",")
-    f.write(str(world.n_col))
-    f.write("\n")
-   
-    cur_state = [0,0]
-    t_state = [0,world.n_col-1]
+    f = open('data.txt', 'w')
+    f_order = 10
+    cur_state = [0,0,0]
+    t_state = [0,world.n_col-1,1]
     phi = basis.fourier(cur_state,f_order,world)
     weights = np.zeros((n_actions,len(phi)))
     alpha2 = basis.alpha_weights(f_order)
-    
-    t_n_steps = np.zeros(n_eps)
    
 
     for ep in range (n_eps):
-        cur_state = [0,0]
+        cur_state = [0,0,0]
         phi = basis.fourier(cur_state,f_order,world)
         action = ctrl.e_greedy2(weights,phi,ep+1)
-        e = np.zeros(len(phi))
-        Q_old = 0
         
         n_steps = 0
         counter = 0
-        
+        t_n_steps = np.zeros(n_eps)
   
         while(cur_state != t_state):
             new_state = world.grid_world(cur_state,action)
@@ -173,7 +189,7 @@ if __name__ == '__main__':
             if(counter > 20):
                 action = ctrl.e_greedy2(weights,phi,10)
                 new_state = world.grid_world(cur_state,action)
-                new_phi = basis.fourier(new_state,f_order,world)
+                ew_phi = basis.fourier(new_state,f_order,world)
                 new_action = ctrl.e_greedy2(weights,new_phi,ep+1)
                 counter = 0
             #############################################
@@ -184,29 +200,20 @@ if __name__ == '__main__':
             delta = reward + gamma*new_Q - Q
             # print "delta = ", delta
             
-#            weights[action,:] = weights[action,:] + delta*alpha*phi/len(phi)
-            
-            # Elgibility trace update
-            # Thresholding the feature vector to 
-            
-            e = gamma*labda*e + (1 - alpha*gamma*labda*np.dot(e,phi))*phi/len(phi)
-#            e = gamma*labda*e + (1 - alpha*gamma*labda*np.dot(e,phi))*phi
-            weights[action,:] = weights[action,:] + alpha*(delta + Q - Q_old)*e - alpha*(Q-Q_old)*phi/len(phi)
-#            weights[action,:] = weights[action,:] + alpha*(delta + Q - Q_old)*e - alpha*(Q-Q_old)*phi
+            weights[action,:] = weights[action,:] + delta*alpha*phi/len(phi)
 
             phi = new_phi
             cur_state = new_state
             action = new_action
-            Q_old = new_Q
-            
+
             n_steps = n_steps + 1
-#            print "n_steps =", n_steps
+            # print "n_steps =", n_steps
             # print "cur_State = ", cur_state
 
         print "n_steps =", n_steps
         t_n_steps[ep] = n_steps
         # print "weights = ", weights
-    print "t_n_steps = ", t_n_steps
+    # print "weights = ", weights
 
     s_st = str(t_n_steps)
     f.write("No. of Steps \n")
@@ -268,7 +275,7 @@ if __name__ == '__main__':
     #     # print "weights = ", weights
     # # print "weights = ", weights
 
-    cur_state = [0,0]
+    cur_state = [0,0,0]
     route_sarsa = []
     route_sarsa = route_sarsa + [cur_state[:]]
     
@@ -281,17 +288,15 @@ if __name__ == '__main__':
         # print "final_path", cur_state
         
     print "route_sarsa = ", route_sarsa
-    
-    s_route = str(route_sarsa)
-    f.write("\n \n")
-    f.write("route_sarsa \n")
-    f.write(s_route)
 
-    q_function = np.zeros((world.n_row,world.n_col))
+    q_function = np.zeros((world.n_row,world.n_col,2))
 
     for i in range(world.n_row):
         for j in range(world.n_col):
-            cur_state = [i,j]
+            if j > (world.n_col/2):
+                p = 1;
+            else: p = 0;
+            cur_state = [i,j,p]
             phi = basis.fourier(cur_state,f_order,world)
             q_function[i,j] = np.argmax(np.dot(weights,phi))
             # print "(i,j) = ", i,j
@@ -329,28 +334,4 @@ if __name__ == '__main__':
     # plt.ylabel('Total reward in each episode')
     # plt.text(5., -25.,'\eps = 0.2', fontsize=18)
     # rcParams.update({'font.size': 18})
-    # plt.show()
-    
-
-
-
-
-
-
-
-
-
-    # print "reward_fxn =", reward_fxn
-    # fig = plt.figure()
-    # ax = fig.add_subplot(111, projection='3d')
-    # X = np.arange(0, world.n_row, 1)
-    # Y = np.arange(0, world.n_col, 1)
-    # q_function = np.transpose(q_function)
-
-    # X, Y = np.meshgrid(X, Y)
-    # print "len(X), len(Y)", np.shape(X), np.shape(Y)
-    # print "len(q_function)=", np.shape(q_function)
-    # surf = ax.plot_surface(X, Y, q_function, rstride=1, cstride=1, cmap=cm.coolwarm,
-    #             linewidth=0, antialiased=False)
-
     # plt.show()
