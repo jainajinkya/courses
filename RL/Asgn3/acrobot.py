@@ -33,18 +33,6 @@ class env():
         th2_Ddot = (tau + (d2/d1)*phi1 - self.m2*self.l1*self.lc2*th1_Dot**2*np.sin(th2) - phi2)/(self.m2*(self.lc2**2) + self.I2 - d2**2/d1)
         th1_Ddot = -(d2*th2_Ddot + phi1)/d1
 
-        # print "th2_Ddot = ", th2_Ddot
-        # print "th1_Ddot = ", th1_Ddot
-        # print "d1 = ", d1
-        # print "d2 = ", d2
-        # print "phi1 =", phi1
-        # print "phi2 =", phi2
-        # print "self.m2*self.l1*self.lc2*th1_Dot**2*np.sin(th2) = ", self.m2*self.l1*self.lc2*th1_Dot**2*np.sin(th2)
-        # print "################################"
-
-        # print "internal_tau = ", ((d2/d1)*phi1 - self.m2*self.l1*self.lc2*th1_Dot**2*np.sin(th2) - phi2)/(self.m2*(self.lc2**2) + self.I2 - d2**2/d1)
-
-
         ## New state
         th1_Dot_new = th1_Dot + th1_Ddot*self.dt
         th2_Dot_new = th2_Dot + th2_Ddot*self.dt
@@ -54,54 +42,54 @@ class env():
         return [th1_new, th1_Dot_new, th2_new, th2_Dot_new]
   
      
-    def grid_world(self,cur_State,action):
-        n_row = 3
-        n_col = 4
-        new_state = [cur_state[0],cur_state[1]]
-
-        if action == 0:
-            if cur_state[1]< (n_col-1):
-                new_state[1] = cur_state[1] + 1
-            else:
-                new_state[1] = cur_state[1]
-
-        if action == 1:
-            if cur_state[1] > 0:
-                new_state[1] = cur_state[1] - 1
-            else:
-                new_state[1] = cur_state[1]
-
-        if action == 2:
-            if cur_state[0] < (n_row-1):
-                new_state[0] = cur_state[0] + 1
-            else:
-                new_state[0] = cur_state[0]
-
-        if action == 3:
-            if cur_state[0] > 0:
-                new_state[0] = cur_state[0] - 1
-            else:
-                new_state[0] = cur_state[0]
-
-        return new_state
+#    def grid_world(self,cur_State,action):
+#        n_row = 3
+#        n_col = 4
+#        new_state = [cur_state[0],cur_state[1]]
+#
+#        if action == 0:
+#            if cur_state[1]< (n_col-1):
+#                new_state[1] = cur_state[1] + 1
+#            else:
+#                new_state[1] = cur_state[1]
+#
+#        if action == 1:
+#            if cur_state[1] > 0:
+#                new_state[1] = cur_state[1] - 1
+#            else:
+#                new_state[1] = cur_state[1]
+#
+#        if action == 2:
+#            if cur_state[0] < (n_row-1):
+#                new_state[0] = cur_state[0] + 1
+#            else:
+#                new_state[0] = cur_state[0]
+#
+#        if action == 3:
+#            if cur_state[0] > 0:
+#                new_state[0] = cur_state[0] - 1
+#            else:
+#                new_state[0] = cur_state[0]
+#
+#        return new_state
 
 
     def r_function(self,cur_state):
         return -1.
       
-    def r_fn2(self,cur_state):
-        cliff = [[0,i] for i in range(1,3)]
-        reward = -1     
-        # if cur_state == self.t_state:
-        #   reward = 50.
-
-        for i in range(len(cliff)):
-            if cur_state == cliff[i]:
-                reward = -100
-                break
-
-        return reward
-  
+#    def r_fn2(self,cur_state):
+#        cliff = [[0,i] for i in range(1,3)]
+#        reward = -1     
+#        # if cur_state == self.t_state:
+#        #   reward = 50.
+#
+#        for i in range(len(cliff)):
+#            if cur_state == cliff[i]:
+#                reward = -100
+#                break
+#
+#        return reward
+#  
   
 
 class basis_fn():
@@ -111,7 +99,7 @@ class basis_fn():
         c = [p for p in itertools.product(x, repeat=2)]
         phi = np.zeros(len(c))
 
-        # scaled_state = [cur_state[0]/(2*np.pi), cur_state[1]/(8*np.pi), cur_state[2]/(2*np.pi), cur_state[3]/(18*np.pi)]
+        scaled_state = [cur_state[0]/(2*np.pi), cur_state[1]/(8*np.pi), cur_state[2]/(2*np.pi), cur_state[3]/(18*np.pi)]
 
         for i in range(len(c)):
             # phi[i] = np.cos(np.pi*np.sum([c[i][j]*scaled_state[j] for j in range(n_dim)]))
@@ -175,8 +163,8 @@ if __name__ == '__main__':
     t_n_steps = np.zeros(n_eps)
     
     f_order = 3
-    #cur_state = [0., 0., 0., 0.]
-    cur_state = [0,0]
+    cur_state = [0., 0., 0., 0.]
+#    cur_state = [0,0]
     phi = basis.fourier(cur_state,f_order)
     weights = np.zeros((n_actions,len(phi)))
     alpha2 = basis.alpha_weights(f_order)
@@ -191,74 +179,74 @@ if __name__ == '__main__':
         phi = basis.fourier(cur_state,f_order)
         action = ctrl.e_greedy2(weights,phi)
         n_steps = 0
-        # tip = [world.l1*np.cos(cur_state[0]-np.pi/2) + world.l2*np.cos(cur_state[0] - np.pi/2 + cur_state[2]), world.l1*np.sin(cur_state[0]- np.pi/2) + world.l2*np.sin(cur_state[0] - np.pi/2 + cur_state[2])]
-        # count_action = 0
-        # old_weights = np.copy(weights)
+         tip = [world.l1*np.cos(cur_state[0]-np.pi/2) + world.l2*np.cos(cur_state[0] - np.pi/2 + cur_state[2]), world.l1*np.sin(cur_state[0]- np.pi/2) + world.l2*np.sin(cur_state[0] - np.pi/2 + cur_state[2])]
+         count_action = 0
+         old_weights = np.copy(weights)
 
   
-        while(cur_state != t_state):
-            
-            new_state = world.grid_world(cur_state,action)
-            reward = world.r_fn2(new_state)
-            new_phi = basis.fourier(new_state,f_order)
-            new_action = ctrl.e_greedy2(weights,new_phi)
-
-
-            Q = np.dot(weights[action,:],phi)
-            new_Q = np.dot(weights[new_action,:],new_phi)
-
-            delta = reward + gamma*new_Q - Q
-            
-            # weights[action,:] = weights[action,:] + delta*np.multiply(alpha2,phi)
-            # weights[action,:] = weights[action,:] + delta*alpha*phi/100
-            weights[action,:] = weights[action,:] + delta*alpha
-
-            phi = new_phi
-            cur_state = new_state
-            action = new_action
-
-            # tip = [world.l1*np.cos(cur_state[0]-np.pi/2) + world.l2*np.cos(cur_state[0] - np.pi/2 + cur_state[2]), world.l1*np.sin(cur_state[0]- np.pi/2) + world.l2*np.sin(cur_state[0] - np.pi/2 + cur_state[2])]
-
-            n_steps = n_steps + 1
-            #print "n_steps =", n_steps
-
-        print "n_steps =", n_steps
-        # print "update in weights = ", weights - old_weights
-        t_n_steps[ep] = n_steps
-    print "weights = ", weights
+#        while(cur_state != t_state):
+#            
+#            new_state = world.grid_world(cur_state,action)
+#            reward = world.r_fn2(new_state)
+#            new_phi = basis.fourier(new_state,f_order)
+#            new_action = ctrl.e_greedy2(weights,new_phi)
+#
+#
+#            Q = np.dot(weights[action,:],phi)
+#            new_Q = np.dot(weights[new_action,:],new_phi)
+#
+#            delta = reward + gamma*new_Q - Q
+#            
+#            # weights[action,:] = weights[action,:] + delta*np.multiply(alpha2,phi)
+#            # weights[action,:] = weights[action,:] + delta*alpha*phi/100
+#            weights[action,:] = weights[action,:] + delta*alpha
+#
+#            phi = new_phi
+#            cur_state = new_state
+#            action = new_action
+#
+#            # tip = [world.l1*np.cos(cur_state[0]-np.pi/2) + world.l2*np.cos(cur_state[0] - np.pi/2 + cur_state[2]), world.l1*np.sin(cur_state[0]- np.pi/2) + world.l2*np.sin(cur_state[0] - np.pi/2 + cur_state[2])]
+#
+#            n_steps = n_steps + 1
+#            #print "n_steps =", n_steps
+#
+#        print "n_steps =", n_steps
+#        # print "update in weights = ", weights - old_weights
+#        t_n_steps[ep] = n_steps
+#    print "weights = ", weights
 
 #==============================================================================
-#       while(tip[1] < world.l1):
-#           if count_action == 3:
-#               action = ctrl.e_greedy(weights,phi)
-#               count_action = 0
-#           else:
-#               action = 0
-#               count_action = count_action + 1
-# 
-#           new_state = world.simulator(cur_state,action)
-#           reward = world.r_function(new_state)
-#           new_phi = basis.fourier(new_state,f_order)
-# 
-#           Q = np.dot(weights[action+1,:],phi)
-#           new_Q = np.dot(weights[action+1,:],new_phi)
-# 
-#           delta = reward + gamma*new_Q - Q
-#           
-#           weights[action+1,:] = weights[action+1,:] + delta*np.multiply(alpha2,phi)
-# 
-#           Q_old = Q
-#           phi = new_phi
-#           cur_state = new_state
-# 
-#           tip = [world.l1*np.cos(cur_state[0]-np.pi/2) + world.l2*np.cos(cur_state[0] - np.pi/2 + cur_state[2]), world.l1*np.sin(cur_state[0]- np.pi/2) + world.l2*np.sin(cur_state[0] - np.pi/2 + cur_state[2])]
-# 
-#           n_steps = n_steps + 1
-#           # print "n_steps =", n_steps
-# 
-#       print "n_steps =", n_steps
-#       # print "update in weights = ", weights - old_weights
-#       t_n_steps[ep] = n_steps
+       while(tip[1] < world.l1):
+           if count_action == 3:
+               action = ctrl.e_greedy(weights,phi)
+               count_action = 0
+           else:
+               action = 0
+               count_action = count_action + 1
+ 
+           new_state = world.simulator(cur_state,action)
+           reward = world.r_function(new_state)
+           new_phi = basis.fourier(new_state,f_order)
+ 
+           Q = np.dot(weights[action+1,:],phi)
+           new_Q = np.dot(weights[action+1,:],new_phi)
+ 
+           delta = reward + gamma*new_Q - Q
+           
+           weights[action+1,:] = weights[action+1,:] + delta*np.multiply(alpha2,phi)
+ 
+           Q_old = Q
+           phi = new_phi
+           cur_state = new_state
+ 
+           tip = [world.l1*np.cos(cur_state[0]-np.pi/2) + world.l2*np.cos(cur_state[0] - np.pi/2 + cur_state[2]), world.l1*np.sin(cur_state[0]- np.pi/2) + world.l2*np.sin(cur_state[0] - np.pi/2 + cur_state[2])]
+ 
+           n_steps = n_steps + 1
+           # print "n_steps =", n_steps
+ 
+       print "n_steps =", n_steps
+       # print "update in weights = ", weights - old_weights
+       t_n_steps[ep] = n_steps
 #==============================================================================
         # print "######################################################################"
 #==============================================================================
