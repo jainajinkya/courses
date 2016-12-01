@@ -3,13 +3,13 @@ close all
 clc
 
 global nState nInput nOutput nModel nGauss T goal Q R Q_f labda mA mB mC
-nState = 2;
-nInput = 2;
-nOutput = 2;
+nState = 6;
+nInput = 6;
+nOutput = 6;
 nModel = 3; % Check number of changepoints
 nGauss = 1;
-goal = [0,0]';
-T = 10;
+goal = [0,0,0,0,0,6*pi]';
+T = 12;
 
 % Dynamics Matrics
 [mA,mB,mC] = dynamicsTemplate();
@@ -28,7 +28,7 @@ cov = zeros(nState,nState,nGauss);
 mProb = zeros(nModel,1);
 
 for i=1:nGauss
-   mu(:,i) = [0,1]'; % + normrnd(i,1,[nState,1]);  
+   mu(:,i) = [2,2,2,pi,pi/2,pi]'; % + normrnd(i,1,[nState,1]);  
    cov(:,:,i) = 5*eye(nState); % + normrnd(0,i/2)*eye(nState);
 end
 sig = cov(1,1,:);
@@ -93,7 +93,7 @@ hold off
 % plot(traj(1,1),traj(2,1),'mo');
 % plot(traj(1,end),traj(2,end),'bx');
 % hold off
-save('test1.mat', 'traj');
+save('test2.mat', 'traj');
 
 
 

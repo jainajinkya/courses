@@ -8,8 +8,7 @@ Y = traj(2,:);
 
 figure(1);clf;
 X_plot = linspace(min(X)-1,max(X)+1);
-% Y_plot = linspace(min(Y)-1,max(Y)+1);
-Y_plot = linspace(-1,3);
+Y_plot = linspace(min(Y)-1,max(Y)+1);
 C = ones(length(Y_plot),length(X_plot));
 
 for i=1:size(C,1)
@@ -21,25 +20,30 @@ pcolor(X_plot,Y_plot,C);
 colormap(gray);
 shading flat
 shading interp
-axis([-1,6,-1,3])
+% axis([-1,7,-2,5])
 hold on
 
 % %% Normal Plot
 % figure(3);
 % hold on
 
-% plot(traj(1,:),traj(2,:),'r--','LineWidth',2);
+plot(traj(1,:),traj(2,:),'r--','LineWidth',2);
 % scatter(X,Y);
-% plot(traj(1,1),traj(2,1),'mo', 'markers',12);
-plot(2,2,'mo', 'markers',18);
-plot(traj(1,end),traj(2,end),'gx','markers',18);
+plot(traj(1,1),traj(2,1),'mo', 'markers',12);
+
+plot(traj(1,end),traj(2,end),'gx','markers',12);
 
 title('Trajectory of the Belief Mean')
 xlabel('x')
 ylabel('y')
 
 hold off
+figure(2)
+ang = linspace(-2*pi, 7*pi,length(traj(6,:)));
+scatter(traj(1,:),traj(6,:));
 
+figure(3)
+plot3(traj(1,:),traj(2,:),traj(3,:));
 %%
 
 % 

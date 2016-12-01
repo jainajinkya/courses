@@ -8,23 +8,24 @@ mB = zeros(nState,nState,nModel);
 mC = zeros(nState,nState,nModel);
 
 for i=1:nModel
-    if(i==0)
+    if(Idx==0)
             A = eye(nState);
             B = eye(nInput);
             C = eye(nOutput);
             
-    elseif(i==1)
+    elseif(Idx==1)
             A = eye(nState);
             B = zeros(nState,nInput);
             C = eye(nOutput);
             
-            B(1,1) = 8;
-            B(2,2) = 1;
+            B(2,3) = (pitch/(2*3.14));
+            B(3,3) = 1;
             
-    elseif(i==2)
+    elseif(Idx==2)
             A = eye(nState);
-            B = 0.5*eye(nInput);
-            C = eye(nOutput);      
+            B = 2*eye(nInput);
+            C = eye(nOutput)
+        
     end    
     
    mA(:,:,i) = A;
