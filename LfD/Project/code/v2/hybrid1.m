@@ -1,12 +1,12 @@
-% clear
+clearvars
 close all
 clc
 
 nState = 2;
 nInput = 2;
 nOutput = 2;
-nModel = 3;
-nGauss = 5;
+nModel = 3; % Check number of changepoints
+nGauss = 1;
 
 % x = [2.5,0]';
 % u = [0,0]';
@@ -24,8 +24,8 @@ for i=1:nGauss
 end
 u0 = zeros(nInput,1);
 
-T = 10;
-delta = 1;
+T = 50;
+delta = 10;
 nSegments = round(T/delta);
 
 % traj = [m];
@@ -38,34 +38,35 @@ mB = zeros(nState,nState,nModel);
 mC = zeros(nState,nState,nModel);
 
 for i=1:nModel
-   mA(:,:,i) = eye(nState) + normrnd(0,0.1)*eye(nState);
-   mB(:,:,i) = eye(nState) + normrnd(0,0.1)*eye(nState);
-   mC(:,:,i) = eye(nState) + normrnd(0,0.1)*eye(nState);
+   mA(:,:,i) = eye(nState)+ rand()*eye(nState);
+   mB(:,:,i) = eye(nState) + 10*rand()*eye(nState);
+   mC(:,:,i) = eye(nState) + rand()*eye(nState);
 end
 
 % Cost Matrices
-Q = 0.01*eye(nState);
+Q = 0.1*eye(nState);
 R = 0.5*eye(nInput);
 Q_f = 20*eye(nState);
 labda = 2000;
 
 %% Optimization
 %Optimization routine
-% x0 = rand(((nState+1)*nGauss +nInput)*nSegments,1);
-% x0(1:nState*nGauss,1) = reshape(mu,[nState*nGauss,1]);
-% x0(nState*nGauss*nSegments+1:nState*nGauss*nSegments+nGauss,1) = cov(1,1,:);
-% x0((nState+1)*nGauss*nSegments+1:(nState+1)*nGauss*nSegments+nInput,1) = u0;
-% 
+x0 = rand(((nState+1)*nGauss +nInput)*nSegments,1);
+x0(1:nState*nGauss,1) = reshape(mu,[nState*nGauss,1]);
+x0(nState*nGauss*nSegments+1:nState*nGauss*nSegments+nGauss,1) = cov(1,1,:);
+x0((nState+1)*nGauss*nSegments+1:(nState+1)*nGauss*nSegments+nInput,1) = u0;
+ 
 opti_A = [];
 opti_B = [];
 opti_Aeq = [];
 opti_Beq = [];
-lb = -20*ones(size(x0,1),1);
-ub = 20*ones(size(x0,1),1);
-constraintRelax = 10.0;
-nonlcon = @(x)covCons2(x,x0,mA,mB,mC,wts,nGauss,nInput,nSegments,delta,constraintRelax/4);
+lb = -100*ones(size(x0,1),1);
+ub = 100*ones(size(x0,1),1);
+constraintRelax = 0;
+nonlcon = @(x)covCons2(x,x0,mA,mB,mC,wts,nGauss,nInput,nSegments,delta,constraintRelax/2);
 
 options = optimoptions('fmincon','Display','iter','Algorithm','sqp','MaxFunctionEvaluations',1000000);
+% options = optimoptions('fmincon','Display','iter','MaxFunctionEvaluations',1000000);
 % options = optimoptions('fmincon','Display','iter','Algorithm','sqp');
 [xfinal,fval,exitflag] = fmincon(@(x)obj_fn(x,nState,nSegments,Q,R,labda,goal),x0,opti_A,opti_B,opti_Aeq,opti_Beq,lb,ub,nonlcon,options)
 % 

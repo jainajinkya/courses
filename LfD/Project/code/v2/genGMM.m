@@ -1,4 +1,4 @@
-function [muNew, covNew,gmm] = genGMM(mu,cov,wts)
+function [muNew, covNew] = genGMM(mu,cov,wts)
 % Right now we are just taking average of all the gmm means and covariance.
 % This should be tested against the case when you are fitting a new K mode 
 % GMM on the new distribution of the means
@@ -17,4 +17,18 @@ for i=1:nState
         end
     end
 end
+% X=[];
+% for i=1:nGauss
+%    X = [X;mvnrnd(muNew(1,i),cov(1,1,i),1000)] ;
+% end
+% gm = fitgmdist(X,nGauss);
+% gm.mu
+%     
+% X=[];
+% for i=1:nGauss
+%    X = [X;mvnrnd(muNew(2,i),cov(2,2,i),1000)] ;
+% end
+% gm = fitgmdist(X,nGauss);
+% gm.mu
+%     
 end

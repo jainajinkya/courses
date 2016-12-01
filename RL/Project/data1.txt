@@ -1,0 +1,1 @@
+n_eps = 200	 alpha = 0.5	 gamma = 1.0	 labda = 0.9	 f_order = 10	 world size = 100,100

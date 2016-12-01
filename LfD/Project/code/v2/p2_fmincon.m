@@ -65,13 +65,13 @@ end
 % 
 % traj
 
-xx = medfilt1(traj(1,:),2);
-yy = medfilt1(traj(2,:),2);
+xx = medfilt1(traj(1,:),10);
+yy = medfilt1(traj(2,:),10);
 % yy = spline(traj(1,:),traj(2,:),xx);
 % yy = fit(traj(1,:)',traj(2,:)','cubicinterp');
 % yy = csaps(traj(1,:),traj(2,:),0.5,xx);
-xx = [traj(1,1),xx(1:end),traj(1,end)];
-yy = [traj(2,1),yy(1:end),traj(2,end)];
+xx = [traj(1,1),xx(2:end),traj(1,end)];
+yy = [traj(2,1),yy(2:end),traj(2,end)];
 traj2 = [xx;yy];
 
 figure(1);

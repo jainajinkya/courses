@@ -1,18 +1,19 @@
 import numpy as np
 import numpy.random as rand
 #from mpl_toolkits.mplot3d.axes3d import Axes3D
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 #import matplotlib
 #from matplotlib import cm
-# from scipy.siself.gnal import medfilt
+from matplotlib import rcParams
+from scipy.signal import medfilt
 #from tiles import *
 import itertools
 
 class env():
     def __init__(self):
         self.dt = 0.05
-        self.n_row = 25
-        self.n_col = 25
+        self.n_row = 50
+        self.n_col = 50
      
     def grid_world(self,cur_state,action):
         n_row = self.n_row
@@ -112,14 +113,14 @@ if __name__ == '__main__':
     ctrl = policy()
     basis = basis_fn()
 
-    n_eps = 200
+    n_eps = 1
     alpha = 0.5
     gamma = 0.9
     labda =  0.9 
     n_actions = 4
-    f_order = 30
+    f_order = 10
     
-    f = open('data.txt', 'w') 
+    f = open('data1.txt', 'w') 
     
     f.write("n_eps = ")
     f.write(str(n_eps))
@@ -144,6 +145,7 @@ if __name__ == '__main__':
     alpha2 = basis.alpha_weights(f_order)
     
     t_n_steps = np.zeros(n_eps)
+    total_reward_sarsa = np.zeros(n_eps)
    
 
     for ep in range (n_eps):
@@ -155,6 +157,7 @@ if __name__ == '__main__':
         
         n_steps = 0
         counter = 0
+        reward_sarsa = 0
         
   
         while(cur_state != t_state):
@@ -184,14 +187,13 @@ if __name__ == '__main__':
             delta = reward + gamma*new_Q - Q
             # print "delta = ", delta
             
-#            weights[action,:] = weights[action,:] + delta*alpha*phi/len(phi)
+            weights[action,:] = weights[action,:] + delta*alpha*phi/len(phi)
             
             # Elgibility trace update
-            # Thresholding the feature vector to 
-            
-            e = gamma*labda*e + (1 - alpha*gamma*labda*np.dot(e,phi))*phi/len(phi)
+            # Thresholding the feature vector to            
+#            e = gamma*labda*e + (1 - alpha*gamma*labda*np.dot(e,phi))*phi/len(phi)
 #            e = gamma*labda*e + (1 - alpha*gamma*labda*np.dot(e,phi))*phi
-            weights[action,:] = weights[action,:] + alpha*(delta + Q - Q_old)*e - alpha*(Q-Q_old)*phi/len(phi)
+#            weights[action,:] = weights[action,:] + alpha*(delta + Q - Q_old)*e - alpha*(Q-Q_old)*phi/len(phi)
 #            weights[action,:] = weights[action,:] + alpha*(delta + Q - Q_old)*e - alpha*(Q-Q_old)*phi
 
             phi = new_phi
@@ -200,13 +202,16 @@ if __name__ == '__main__':
             Q_old = new_Q
             
             n_steps = n_steps + 1
+            reward_sarsa = reward_sarsa + reward
 #            print "n_steps =", n_steps
             # print "cur_State = ", cur_state
 
         print "n_steps =", n_steps
         t_n_steps[ep] = n_steps
+        total_reward_sarsa[ep] = reward_sarsa
         # print "weights = ", weights
     print "t_n_steps = ", t_n_steps
+    
 
     s_st = str(t_n_steps)
     f.write("No. of Steps \n")
@@ -304,53 +309,63 @@ if __name__ == '__main__':
     f.write("Q_function \n")
     f.write(s_q)
     f.close()
-    # Plot reward function
-    # fig = plt.figure()
-    # x_vec = np.arange(0,n_eps)
-
-    # filtered_rew_sarsa = medfilt(total_reward_sarsa, 15)
-
-    # m1 = np.mean(filtered_rew_sarsa)*np.ones(len(x_vec))
-    # m2 = np.mean(filt_r_q)*np.ones(len(x_vec))
-    # # filtered_rew_q_learn = medfilt(total_reward_q_learn, 5)
-    # line1, = plt.plot(x_vec,filtered_rew_sarsa, 'r', linewidth=3.0)
-    # # plt.plot(x_vec,filtered_rew_q_learn, 'b')
-    # # plt.plot(x_vec,filt_r_s, 'r')
-    # line2, = plt.plot(x_vec,filt_r_q, 'b', linewidth=3.0)
+   
     
-    # plt.plot(x_vec,m1,'r--', linewidth=3.0)
-    # plt.plot(x_vec,m2,'b--', linewidth=3.0)
+    ### Plots
+    fig = plt.figure()
+    x_vec = np.arange(0,n_eps)
+    # filtered_rew_sarsa = savgol_filter(total_reward_sarsa, 5, 1)
+    # filtered_rew_q_learn = savgol_filter(total_reward_q_learn, 5, 1)
 
-    # axes = plt.gca()
-    # axes.set_xlim([0,n_eps])
-    # axes.set_ylim([-200, 0])
-    # plt.legend([line1, line2],['SARSA', 'Q-Learning'],loc=2)
-    # plt.xlabel('No. of Episodes')
-    # plt.ylabel('Total reward in each episode')
-    # plt.text(5., -25.,'\eps = 0.2', fontsize=18)
-    # rcParams.update({'font.size': 18})
-    # plt.show()
+    filtered_rew_sarsa = medfilt(total_reward_sarsa, 15)
+
+    m1 = np.mean(filtered_rew_sarsa)*np.ones(len(x_vec))
+#    m2 = np.mean(filt_r_q)*np.ones(len(x_vec))
+    # filtered_rew_q_learn = medfilt(total_reward_q_learn, 5)
+    line1, = plt.plot(x_vec,filtered_rew_sarsa, 'r', linewidth=3.0)
+    # plt.plot(x_vec,filtered_rew_q_learn, 'b')
+    # plt.plot(x_vec,filt_r_s, 'r')
+#    line2, = plt.plot(x_vec,filt_r_q, 'b', linewidth=3.0)
     
+    plt.plot(x_vec,m1,'r--', linewidth=3.0)
+#    plt.plot(x_vec,m2,'b--', linewidth=3.0)
 
+    axes = plt.gca()
+    axes.set_xlim([0,n_eps])
+    axes.set_ylim([-200, 0])
+#    plt.legend([line1],['SARSA'],loc=2)
+    plt.xlabel('No. of Episodes')
+    plt.ylabel('Total reward in each episode')
+    plt.text(5., -25.,'\eps = 0.2', fontsize=18)
+    rcParams.update({'font.size': 18})
+    
+    
+    fig2 = plt.figure()
+    line2, = plt.plot(x_vec,t_n_steps, 'r', linewidth=3.0)
+    plt.plot(x_vec,t_n_steps,'r--', linewidth=3.0)
+#    plt.plot(x_vec,m2,'b--', linewidth=3.0)
 
+    axes = plt.gca()
+    axes.set_xlim([0,n_eps])
+    axes.set_ylim([0,500000])
+#    plt.legend([line1],['SARSA'],loc=2)
+    plt.xlabel('No. of Episodes')
+    plt.ylabel('Number of steps taken in each episode')
+    plt.text(5., -25.,'\eps = 0.2', fontsize=18)
+    rcParams.update({'font.size': 18})
+    
+    plt.show()
+    # p_value = np.zeros((size_world[0],size_world[1]))
+    # # dummy_state = world.state_update([1,11],3)
+    # # p_value(dummy_state) = 1.0
+    # print dummy_state
 
-
-
-
-
-
-
-    # print "reward_fxn =", reward_fxn
-    # fig = plt.figure()
     # ax = fig.add_subplot(111, projection='3d')
-    # X = np.arange(0, world.n_row, 1)
-    # Y = np.arange(0, world.n_col, 1)
-    # q_function = np.transpose(q_function)
-
+    # X = np.arange(0, size_world[1], 1)
+    # Y = np.arange(0, size_world[0], 1)
     # X, Y = np.meshgrid(X, Y)
-    # print "len(X), len(Y)", np.shape(X), np.shape(Y)
-    # print "len(q_function)=", np.shape(q_function)
-    # surf = ax.plot_surface(X, Y, q_function, rstride=1, cstride=1, cmap=cm.coolwarm,
-    #             linewidth=0, antialiased=False)
-
+    # surf = ax.plot_surface(X, Y, p_value, rstride=1, cstride=1, cmap=cm.coolwarm,
+    #         linewidth=0, antialiased=False)
     # plt.show()
+    
+    

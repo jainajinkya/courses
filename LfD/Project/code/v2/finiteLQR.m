@@ -1,9 +1,9 @@
-function [K,S] = finiteLQR(t_f,A,B,Q,R,F,t_res)
+function [K,S] = finiteLQR(t_f,A,B,Q,R,F)
 nState = size(A,1);
 nInput = size(R,1);
-S = zeros(nState,nState,t_f/t_res);
+S = zeros(nState,nState,t_f);
 S(:,:,t_f)= F;
-K = zeros(nInput,nState,t_f/t_res);
+K = zeros(nInput,nState,t_f);
 
 for t=t_f-1:-1:1
     % Backward Pass

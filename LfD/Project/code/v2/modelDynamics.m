@@ -1,13 +1,12 @@
 function [muNew,covNew] = modelDynamics(x,mu,cov,u,mA,mB,mC,wts)
-nState = size(mu,1);
-nGauss = size(mu,2);
-nModel = size(mA,3);
+global nState nModel nGauss
 
 muSet = zeros(nState,nGauss,nModel);
 covSet = zeros(nState,nState,nGauss,nModel);
 
 % Inclusion of covariance in the formulation
 W = 0.5*(5.0-x(1))^2*eye(nState);
+% W = 0.5*eye(nState);
 
 for k=1:nGauss
     for i=1:nModel

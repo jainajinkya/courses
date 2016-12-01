@@ -24,7 +24,7 @@ end
 
 for i=1:nSegments-1    
     for t=1:delta
-        [mu,cov] = modelDynamics(x,mu,cov,u(:,i),mA,mB,mC,wts);
+        [mu,cov] = modelDynamics(mu,mu,cov,u(:,i),mA,mB,mC,wts);
         [wts] = model_wts(mu,cov);
     end
     m_new(:,:,i+1) = mu;
