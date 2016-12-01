@@ -3,48 +3,55 @@ close
 clc
 
 traj = importdata('test1.mat');
-X = traj(1,:);
-Y = traj(2,:);
-
-figure(1);clf;
-X_plot = linspace(min(X)-1,max(X)+1);
-Y_plot = linspace(min(Y)-1,max(Y)+1);
-C = ones(length(Y_plot),length(X_plot));
-
-for i=1:size(C,1)
-    for j=1:size(C,2)
-        C(i,j) = -0.5*(5-X_plot(j))^2;
-    end
-end
-pcolor(X_plot,Y_plot,C);
-colormap(gray);
-shading flat
-shading interp
-% axis([-1,7,-2,5])
-hold on
+% X = traj(1,:);
+% Y = traj(2,:);
+% 
+% figure(1);clf;
+% X_plot = linspace(min(X)-1,max(X)+1);
+% Y_plot = linspace(min(Y)-1,max(Y)+1);
+% C = ones(length(Y_plot),length(X_plot));
+% 
+% for i=1:size(C,1)
+%     for j=1:size(C,2)
+%         C(i,j) = -0.5*(5-X_plot(j))^2;
+%     end
+% end
+% pcolor(X_plot,Y_plot,C);
+% colormap(gray);
+% shading flat
+% shading interp
+% % axis([-1,7,-2,5])
+% hold on
 
 % %% Normal Plot
 % figure(3);
 % hold on
 
-plot(traj(1,:),traj(2,:),'r--','LineWidth',2);
-% scatter(X,Y);
-plot(traj(1,1),traj(2,1),'mo', 'markers',12);
+% plot(traj(1,:),traj(2,:),'r--','LineWidth',2);
+% % scatter(X,Y);
+% plot(traj(1,1),traj(2,1),'mo', 'markers',12);
+% 
+% plot(traj(1,end),traj(2,end),'gx','markers',12);
+% 
+% title('Trajectory of the Belief Mean')
+% xlabel('x')
+% ylabel('y')
+% 
+% hold off
 
-plot(traj(1,end),traj(2,end),'gx','markers',12);
-
-title('Trajectory of the Belief Mean')
-xlabel('x')
-ylabel('y')
-
-hold off
 figure(2)
-ang = linspace(-2*pi, 7*pi,length(traj(6,:)));
-scatter(traj(1,:),traj(6,:));
-
-figure(3)
-plot3(traj(1,:),traj(2,:),traj(3,:));
+hold on 
+plot(traj(1,:),traj(2,:),'b');
+plot(traj(1,:),traj(3,:),'c');
+plot(traj(1,:),traj(4,:),'k');
+plot(traj(1,:),traj(5,:),'g');
+% plot(traj(1,:),traj(6,:),'r');
+hold off
 %%
+title('Variation of System DOFs wrt x-coordinate')
+xlabel('x-coordinate')
+ylabel('Value')
+legend('y-coordinate', 'z-coordinate', '\theta_x', '\theta_y');
 
 % 
 %% Smooth Trajectory
