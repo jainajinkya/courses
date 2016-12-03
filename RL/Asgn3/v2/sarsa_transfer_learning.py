@@ -10,10 +10,11 @@ from scipy.signal import medfilt
 
 class grid_world:
     def __init__(self):
-        self.state = np.zeros((20,10))
+        self.state = np.zeros((10,20))
         self.n_rows = np.shape(self.state)[0]
         self.n_cols = np.shape(self.state)[1]
-        self.t_state = [0, np.shape(self.state)[1]-1]
+        self.t_state = [7, 15]
+#        self.t_state = [0, np.shape(self.state)[1]-1]
 
     def state_update(self, cur_state, action):
         n_row = np.shape(self.state)[0]
@@ -87,7 +88,7 @@ if __name__ == '__main__':
     alpha = 0.5
     disc = 1.0
     
-    f = open('data20by10_base.txt', 'w') 
+    f = open('new_goal_7by15_base.txt', 'w') 
     
     f_sarsa= open('q_sarsa.npy', 'r')
     f_q_learn = open('q_q_value.npy','r')
@@ -107,9 +108,9 @@ if __name__ == '__main__':
     q_value_q_learn = np.zeros((size_world[0],size_world[1],n_actions)) 
     dummy_sarsa = np.load(f_sarsa)
     dummy_q_learn = np.load(f_q_learn)
-    
+#    
 #    for i in range(np.shape(dummy_sarsa)[0]):
-#        for j in range(np.shape(q_value_sarsa)[1]):
+#        for j in range(np.shape(dummy_sarsa)[1]):
 #            q_value_sarsa[i][j] = dummy_sarsa[i][j]
 #            q_value_q_learn[i][j] = dummy_q_learn[i][j]
 #            
