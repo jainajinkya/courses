@@ -1,5 +1,5 @@
 function [wtsNew] = model_wts(mu,cov)
-chpts = [[3,0]',[5,2]'];  % Number of chnagepoints should be dependent on nModels
+global chpts
 
 gmm = gmdistribution(mu',cov);
 wtsNew = cdf(gmm,chpts');

@@ -3,8 +3,12 @@ close
 clc
 
 traj = importdata('test1.mat');
+traj_true = importdata('test1_true_traj.mat');
+
 X = traj(1,:);
 Y = traj(2,:);
+X2 = traj_true(1,:);
+Y2 = traj_true(2,:);
 
 figure(1);clf;
 X_plot = linspace(min(X)-1,max(X)+1);
@@ -28,7 +32,7 @@ hold on
 % figure(3);
 % hold on
 
-% plot(traj(1,:),traj(2,:),'r--','LineWidth',2);
+plot(traj(1,:),traj(2,:),'r--','LineWidth',2);
 % scatter(X,Y);
 % plot(traj(1,1),traj(2,1),'mo', 'markers',12);
 plot(2,2,'mo', 'markers',18);
@@ -44,18 +48,18 @@ hold off
 
 % 
 %% Smooth Trajectory
-% figure(4)
-% % polyfit_y = polyfit(X,Y,8);
-% % fit_y = polyval(polyfit_y,X);
-% xx = smooth(X,0.1,'loess');
-% yy = smooth(Y,0.1,'loess');
-% plot(xx,yy,'r-','LineWidth',2);
-% hold on
-% % plot(xx,yy,'r');
-% scatter(xx,yy);
-% plot(traj(1,1),traj(2,1),'mo');
-% plot(traj(1,end),traj(2,end),'bx');
-% hold off
+figure(4)
+% polyfit_y = polyfit(X,Y,8);
+% fit_y = polyval(polyfit_y,X);
+xx = smooth(X2,0.1,'loess');
+yy = smooth(Y2,0.1,'loess');
+plot(xx,yy,'r-','LineWidth',2);
+hold on
+% plot(xx,yy,'r');
+scatter(xx,yy);
+plot(traj(1,1),traj(2,1),'mo');
+plot(traj(1,end),traj(2,end),'bx');
+hold off
 
 
 

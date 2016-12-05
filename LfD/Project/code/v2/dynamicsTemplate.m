@@ -15,15 +15,16 @@ for i=1:nModel
             
     elseif(i==1)
             A = eye(nState);
-            B = zeros(nState,nInput);
+%             B = zeros(nState,nInput);
+            B = eye(nState);
             C = eye(nOutput);
             
-            B(1,1) = 8;
-            B(2,2) = 1;
+%             B(1,1) = 8;
+%             B(2,2) = 1;
             
     elseif(i==2)
             A = eye(nState);
-            B = 0.5*eye(nInput);
+            B = 1.0*eye(nInput);
             C = eye(nOutput);      
     end    
     

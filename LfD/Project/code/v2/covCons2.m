@@ -1,5 +1,5 @@
 function [c,ceq] = covCons2(x,x0,mA,mB,mC,wts,nGauss,nInput,nSegments,delta,constraintRelax)
-nState = size(mA,1);
+global chpts nState
 
 % m = x(1:nState*nGauss*nSegments,:);
 % s = x(nState*nGauss*nSegments+1:(nState+1)*nGauss*nSegments,:);

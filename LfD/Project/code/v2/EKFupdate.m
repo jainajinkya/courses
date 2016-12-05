@@ -11,8 +11,9 @@ for k=1:nGauss
     for i=1:nModel
         gamma = mA(:,:,i)*cov(:,:,k)*mA(:,:,i)';        
         muSet(:,k,i) = mA(:,:,i)*mu(:,k) + mB(:,:,i)*u;
-        zTrue = muSet(:,k,i) + 0.1*rand(nState,1);
-        zModel = obsFn(mu,muSet(:,k,i),W);
+        % Observation
+        zTrue = mC(:,:,i)*(x-muSet(:,k)) + mC(:,:,i)*(muSet(:,k)) + mvnrnd(zeros(nState,1),W)';
+        zModel = obsFn(muSet(:,k,i),W);
         muSet(:,k,i) = muSet(:,k,i) + (gamma*mC(:,:,i)'*(inv(mC(:,:,i)*gamma*mC(:,:,i)' + W))*(zTrue-zModel));
         covSet(:,:,k,i) = gamma - gamma*mC(:,:,i)'*(inv(mC(:,:,i)*gamma*mC(:,:,i)' + W))*(mC(:,:,i)*gamma);
     end
