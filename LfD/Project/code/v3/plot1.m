@@ -3,7 +3,7 @@ close
 clc
 
 traj = importdata('test1.mat');
-traj_true = importdata('test1_traj_true.mat');
+% traj_true = importdata('test1_traj_true.mat');
 X = traj(1,:);
 Y = traj(2,:);
 

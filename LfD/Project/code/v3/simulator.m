@@ -1,7 +1,7 @@
 function xNew = simulator(x,mu,u)
 global nState mA mB chpts
 
-idx = size(chpts,2)*ones(nState,1);
+idx = size(chpts,2)*ones(nState,1)+1;
 
 for i = 1:nState
     for j = size(chpts,2):-1:1

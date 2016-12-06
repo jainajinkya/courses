@@ -1,7 +1,7 @@
 function [u_plan,mu_plan,s_plan] = createPlan(mu,cov)
 global nState nInput nModel nGauss T goal Q R labda mA mB mC
 
-nSegments = 4;
+nSegments = 3;
 delta = round(T/nSegments);
 
 wts = (1/nModel)*ones(nModel,1);

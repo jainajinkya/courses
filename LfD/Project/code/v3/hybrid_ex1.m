@@ -9,7 +9,7 @@ nOutput = 6;
 nModel = 3; % Check number of changepoints
 nGauss = 1;
 goal = [0,0,0,0,0,6*pi]';
-T = 12;
+T = 9;
 
 % Dynamics Matrics
 [mA,mB,mC] = dynamicsTemplate();
@@ -21,13 +21,13 @@ chpts = [[0,0,0,0,0,0]',[0,0,0,0,0,6*pi-0.1]'];  % Number of chnagepoints should
 Q = 0.5*eye(nState);
 R = 0.5*eye(nInput);
 Q_f = 20*eye(nState);
-labda = 2000;
+labda = 200;
 
 
 % System Dynamics
-x0 = [2.5,2.5,2.5,pi,0,0]';
+% x0 = [2.5,2.5,2.5,0,0,0]';
 
-theta = 1.0;
+theta = 0.1;
 
 % GMM Intialize
 mu = zeros(nState,nGauss);
@@ -41,7 +41,7 @@ end
 sig = cov(1,1,:);
 
 muFinal = mu;
-x = x0;
+x = mu;
 
 traj = [mu];
 traj_true = [x];
@@ -92,13 +92,14 @@ end
 
 figure(1);
 hold on
-plot(traj(1,:),traj(2,:),'r');
+plot(traj(1,:),traj(2,:),'r--');
 plot(traj_true(1,:),traj_true(2,:),'b');
 
 % plot(traj_wo_err(1,:),traj_wo_err(2,:),'b--');
 plot(traj(1,1),traj(2,1),'mo');
 plot(traj(1,end),traj(2,end),'bx');
 
+plot(traj_true(1,:),traj_true(2,:),'b');
 plot(traj_true(1,1),traj_true(2,1),'mo');
 plot(traj_true(1,end),traj_true(2,end),'bx');
 hold off
