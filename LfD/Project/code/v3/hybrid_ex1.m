@@ -2,7 +2,7 @@ clearvars
 close all
 clc
 
-global nState nInput nOutput nModel nGauss T goal Q R Q_f labda mA mB mC
+global nState nInput nOutput nModel nGauss T goal Q R Q_f labda mA mB mC chpts
 nState = 6;
 nInput = 6;
 nOutput = 6;
@@ -14,11 +14,18 @@ T = 12;
 % Dynamics Matrics
 [mA,mB,mC] = dynamicsTemplate();
 
+% Changepoints
+chpts = [[0,0,0,0,0,0]',[0,0,0,0,0,6*pi-0.1]'];  % Number of chnagepoints should be dependent on nModels
+
 % Cost Matrices
 Q = 0.5*eye(nState);
 R = 0.5*eye(nInput);
 Q_f = 20*eye(nState);
 labda = 2000;
+
+
+% System Dynamics
+x0 = [2.5,2.5,2.5,pi,0,0]';
 
 theta = 1.0;
 
@@ -34,10 +41,13 @@ end
 sig = cov(1,1,:);
 
 muFinal = mu;
+x = x0;
+
+traj = [mu];
+traj_true = [x];
 
 while(max(abs(muFinal - goal)) > 0.1)
     [u_plan,mu_plan,s_plan] = createPlan(mu,cov);
-    traj = [mu];
 
     for t=1:T-1
         for i=1:nGauss
@@ -51,17 +61,21 @@ while(max(abs(muFinal - goal)) > 0.1)
         % LQR_Control
 %         u_local = blqr_fn(mu,sig,u_plan(:,t),mu_plan(:,:,t),mA(:,:,idx),mB(:,:,idx),mC(:,:,idx),T-t);
         u_local = blqr_fn(mu,sig,u_plan(:,t+1),mu_plan(:,:,t),s_plan(:,:,t),mA(:,:,idx),mB(:,:,idx),mC(:,:,idx),1);
+        xNew = simulator(x,mu,u_local);
 
         % EKF function for actual dynamics
         wts2 = model_wts(mu,cov);
-        [mu,sig] = EKFupdate(mu,mu,sig,u_local,mA,mB,mC,wts2);
+        [mu,sig] = EKFupdate(xNew,mu,sig,u_local,mA,mB,mC,wts2);
 
-        traj = [traj,mu];
+         x = xNew;
         
         if (max(abs(mu-mu_plan(:,:,t+1)))> theta)
             disp('breaking loop')
             break;
-        end    
+        end 
+                
+        traj = [traj,mu];
+        traj_true = [traj_true, x];
     end
     
     muFinal = mu;
@@ -79,23 +93,26 @@ end
 figure(1);
 hold on
 plot(traj(1,:),traj(2,:),'r');
+plot(traj_true(1,:),traj_true(2,:),'b');
 
 % plot(traj_wo_err(1,:),traj_wo_err(2,:),'b--');
 plot(traj(1,1),traj(2,1),'mo');
 plot(traj(1,end),traj(2,end),'bx');
+
+plot(traj_true(1,1),traj_true(2,1),'mo');
+plot(traj_true(1,end),traj_true(2,end),'bx');
 hold off
 
 % figure(2)
 % hold on
 % % plot(yy,traj(1,:),traj(2,:),'b');
 % plot(xx,yy,'r');
-% 
+%
 % plot(traj(1,1),traj(2,1),'mo');
 % plot(traj(1,end),traj(2,end),'bx');
 % hold off
-save('test2.mat', 'traj');
-
-
+save('test1.mat', 'traj');
+save('test1_true_traj.mat', 'traj_true');
 
 
 

@@ -9,7 +9,7 @@ nOutput = 2;
 nModel = 3; % Check number of changepoints
 nGauss = 1;
 goal = [0,0]';
-T = 25; 
+T = 8; 
 
 % Dynamics Matrics
 [mA,mB,mC] = dynamicsTemplate();
@@ -26,7 +26,7 @@ labda = 200;
 theta = 0.1;
 
 % System Dynamics
-x0 = [3.5,0]';
+x0 = [2.5,0]';
 
 % GMM Intialize
 mu0 = zeros(nState,nGauss);

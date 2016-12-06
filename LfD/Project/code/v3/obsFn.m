@@ -1,4 +1,4 @@
-function z = obsFn(x,mu,W)
+function z = obsFn(mu,W)
 global nState
-z = mu + 0.1*rand(nState,1);
+z = mu + mvnrnd(zeros(nState,1),W)';
 end

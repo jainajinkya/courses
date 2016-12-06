@@ -15,8 +15,12 @@ opti_A = [];
 opti_B = [];
 opti_Aeq = [];
 opti_Beq = [];
-lb = -20*ones(size(x0,1),1);
-ub = 20*ones(size(x0,1),1);
+% lb = -20*ones(size(x0,1),1);
+% ub = 20*ones(size(x0,1),1);
+u_max = 1.0;
+
+lb = [-20*ones((nState+1)*nGauss*nSegments,1); -u_max*ones(nInput*nSegments,1)];
+ub = [20*ones((nState+1)*nGauss*nSegments,1); u_max*ones(nInput*nSegments,1)];
 constraintRelax = 0.0;
 exitflag = 0;
 fnEval = 100000;
@@ -25,7 +29,7 @@ while(1)
     nonlcon = @(x)covCons2(x,x0,mA,mB,mC,wts,nGauss,nInput,nSegments,delta,constraintRelax);
     
 %     options = optimoptions('fmincon','Display','iter','Algorithm','sqp','MaxFunctionEvaluations',fnEval);
-    options = optimoptions('fmincon','Display','iter','Algorithm','sqp');
+    options = optimoptions('fmincon','Display','iter','Algorithm','sqp','MaxFunEvals',fnEval);
     [xfinal,fval,exitflag] = fmincon(@(x)obj_fn(x,nState,nSegments,Q,R,labda,goal),x0,opti_A,opti_B,opti_Aeq,opti_Beq,lb,ub,nonlcon,options);
    
     exitflag

@@ -35,8 +35,12 @@ hold on
 plot(traj(1,:),traj(2,:),'r--','LineWidth',2);
 % scatter(X,Y);
 % plot(traj(1,1),traj(2,1),'mo', 'markers',12);
-plot(2,2,'mo', 'markers',18);
-plot(traj(1,end),traj(2,end),'gx','markers',18);
+plot(traj(1,1),traj(2,1),'mo', 'markers',25);
+plot(traj(1,end),traj(2,end),'gx','markers',25);
+
+plot(traj_true(1,:),traj_true(2,:),'b-','LineWidth',2);
+plot(traj_true(1,1),traj_true(2,1),'mo', 'markers',25);
+plot(traj_true(1,end),traj_true(2,end),'gx','markers',25);
 
 title('Trajectory of the Belief Mean')
 xlabel('x')
@@ -46,13 +50,15 @@ hold off
 
 %%
 
-% 
+
 %% Smooth Trajectory
-figure(4)
+figure(2)
 % polyfit_y = polyfit(X,Y,8);
 % fit_y = polyval(polyfit_y,X);
-xx = smooth(X2,0.1,'loess');
-yy = smooth(Y2,0.1,'loess');
+
+xx = smooth(X,0.1,'loess');
+yy = spline(X,Y,xx);
+% yy = smooth(Y,0.1,'loess');
 plot(xx,yy,'r-','LineWidth',2);
 hold on
 % plot(xx,yy,'r');

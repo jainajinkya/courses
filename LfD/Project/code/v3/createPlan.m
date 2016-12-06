@@ -24,8 +24,8 @@ fnEval = 100000;
 while(1)
     nonlcon = @(x)covCons2(x,x0,mA,mB,mC,wts,nGauss,nInput,nSegments,delta,constraintRelax);
     
-    options = optimoptions('fmincon','Display','iter','Algorithm','sqp','MaxFunctionEvaluations',fnEval);
-    % options = optimoptions('fmincon','Display','iter','Algorithm','sqp');
+%     options = optimoptions('fmincon','Display','iter','Algorithm','sqp','MaxFunctionEvaluations',fnEval);
+    options = optimoptions('fmincon','Display','iter','Algorithm','sqp','MaxFunEvals',fnEval);
     [xfinal,fval,exitflag] = fmincon(@(x)obj_fn(x,nState,nSegments,Q,R,labda,goal),x0,opti_A,opti_B,opti_Aeq,opti_Beq,lb,ub,nonlcon,options);
    
     exitflag
@@ -38,7 +38,7 @@ while(1)
         constraintRelax = 5;
         fnEval = 2*fnEval;
         clear xfinal
-    elseif(exitflag==2)
+    elseif(exitflag==2 && constraintRelax ~= 0.0)
         x0 = xfinal; % + rand()*ones(size(x0,1),1);
         constraintRelax = constraintRelax/2;
     else
@@ -69,7 +69,7 @@ for i=1:nSegments
     for t=1:delta
         [mu_plan(:,:,(i-1)*delta+t+1),cov] = modelDynamics(mu_plan(:,:,(i-1)*delta+t),mu_plan(:,:,(i-1)*delta+t),cov,u_new(:,i),mA,mB,mC,wts);
         [wts] = model_wts(mu_plan(:,:,(i-1)*delta+t+1),cov);
-        s_plan(:,(i-1)*delta+t+1) = cov(1,1);
+        s_plan(:,:,(i-1)*delta+t+1) = cov(1,1);
         u_plan(:,(i-1)*delta+t+1) = u_new(:,i);
     end
 end

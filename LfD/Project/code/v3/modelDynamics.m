@@ -18,11 +18,3 @@ end
 
 [muNew,covNew] = genGMM(muSet,covSet,wts);
 end
-
-%         dg_dsig= mA(:,:,i)*mA(:,:,i)';
-%         ds_dsig = dg_dsig - dg_dsig*mC(:,:,i)'*(inv(mC(:,:,i)*gamma*mC(:,:,i)' + W)*(mC(:,:,i)*gamma)) ...
-%             + gamma*mC(:,:,i)'*(inv(mC(:,:,i)*gamma*mC(:,:,i)' + W)*(mC(:,:,i)*dg_dsig*mC(:,:,i)')*inv(mC(:,:,i)*gamma*mC(:,:,i)' + W)*(mC(:,:,i)*gamma)) ...
-%             - gamma*mC(:,:,i)'*(inv(mC(:,:,i)*gamma*mC(:,:,i)' + W)*(mC(:,:,i)*dg_dsig));
-%         
-%         d_s_m = gamma*mC(:,:,i)'*(inv(mC(:,:,i)*gamma*mC(:,:,i)' + W)*((x(1)-5)*eye(size(W)))*inv(mC(:,:,i)*gamma*mC(:,:,i)' + W)*(mC(:,:,i)*gamma));  
-%         mA_ext(3,:,i) = [d_s_m(1,1) 0  ds_dsig(1,1)];
