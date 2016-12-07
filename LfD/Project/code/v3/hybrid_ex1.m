@@ -27,7 +27,7 @@ labda = 200;
 % System Dynamics
 % x0 = [2.5,2.5,2.5,0,0,0]';
 
-theta = 0.1;
+theta = 3.0;
 
 % GMM Intialize
 mu = zeros(nState,nGauss);
@@ -48,6 +48,7 @@ traj_true = [x];
 
 while(max(abs(muFinal - goal)) > 0.1)
     [u_plan,mu_plan,s_plan] = createPlan(mu,cov);
+    
 
     for t=1:T-1
         for i=1:nGauss
@@ -76,6 +77,9 @@ while(max(abs(muFinal - goal)) > 0.1)
                 
         traj = [traj,mu];
         traj_true = [traj_true, x];
+        if(theta>0.1)
+            theta = theta/2;
+        end
     end
     
     muFinal = mu;

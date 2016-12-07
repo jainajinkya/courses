@@ -4,7 +4,7 @@ global nState nGauss nModel
 cov = s*eye(nState);
 muSet = zeros(nState,nGauss,nModel);
 covSet = zeros(nState,nState,nGauss,nModel);
-W = 0.5*eye(nState);
+W = 0.1*eye(nState);
 % W = 0.5*(5.0-x(1))^2*eye(nState);
 
 for k=1:nGauss

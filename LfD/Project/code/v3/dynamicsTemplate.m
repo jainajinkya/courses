@@ -8,7 +8,7 @@ mB = zeros(nState,nState,nModel);
 mC = zeros(nState,nState,nModel);
 
 for i=1:nModel
-    if(i==3)
+    if(i==1)
             A = eye(nState);
             B = eye(nInput);
             C = eye(nOutput);
@@ -21,7 +21,7 @@ for i=1:nModel
             B(3,6) = (pitch/(2*pi));
             B(6,6) = 1;
             
-    elseif(i==1)
+    elseif(i==3)
             A = eye(nState);
             B = zeros(nState,nInput);
             C = eye(nOutput);      

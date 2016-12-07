@@ -6,7 +6,7 @@ covSet = zeros(nState,nState,nGauss,nModel);
 
 % Inclusion of covariance in the formulation
 %W = 0.5*(5.0-x(1))^2*eye(nState);
-W = 0.5*eye(nState);
+W = 0.1*eye(nState);
 
 for k=1:nGauss
     for i=1:nModel

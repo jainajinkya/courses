@@ -12,7 +12,7 @@ for i = 1:nState
 end
 
 %mode = max(idx);
-mode = size(chpts,2)+2 - max(idx);
+
 
 A = mA(:,:,mode);
 B = mB(:,:,mode);
