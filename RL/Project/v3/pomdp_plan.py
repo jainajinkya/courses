@@ -219,7 +219,7 @@ class algorithm():
                 # If increase in the projected value, add the new alpha vector
 #                new_valueFn = self.beliefValueWithNewAlpha(new_alpha,(pomdp.B_set[r,t]))
 
-                if(new_value > old_value and (new_alpha not in self.valueFn)):
+                if(new_value > old_value):
                     self.valueFn = vstack((self.valueFn, new_alpha)) # Check how this addition should be done
                     self.actions_alpha = vstack((self.actions_alpha,action_alpha))
                     self.nAlphas = self.nAlphas + 1
@@ -281,18 +281,14 @@ class algorithm():
             return [self.gamma*sum([max([sum([self.valueFn[j][s_dash]*self.pomdp.observationProb(s_dash,obs)*self.pomdp.stateTransitionProbState(s_dash,state,action) for s_dash in range(self.pomdp.nStates)]) for j in range(self.nAlphas)]) for obs in range(self.pomdp.nObservations)]) for state in range(self.pomdp.nStates)]
 
 
-    def plan(self,b_init,n_eps):  
-        n_correct = 0
-        n_incorrect = 0
+    def plan(self,b_init,n_eps):        
         for i in range(n_eps):
             print "Starting New Episode #########################"
             state = random.randint(self.pomdp.nStates)
             print "state =", self.pomdp.state[state]
             belief = b_init
             self.run = True
-            maxIterations = 20
-            k= 0
-            
+          
             while(self.run):
                 print "Current belief = ", belief          
                 alpha_max = argmax([dot(self.valueFn[j],belief) for j in range(self.nAlphas)])
@@ -303,27 +299,17 @@ class algorithm():
                 print "observation = ", self.pomdp.obs[int(obs)]                
                 print "\n"
                 
-                k = k+1
-                                
-                if int(action) != 0 or k > maxIterations:
-                    if((state == 0 and action == 2) or (state == 1 and action == 1)):
-                        n_correct = n_correct + 1
-                    else: 
-                        n_incorrect = n_incorrect + 1
-                        
-                    self.run = False 
-        
-        print "Number of Incorrects =", n_incorrect
-        print "Number of Corrects =", n_correct
+                if int(action) != 0:
+                    self.run = False         
             
         return
             
         
 
 if __name__ == "__main__":
-    nEps = 50
+    nEps = 5
     nTraj = 20
-    nT = 15
+    nT = 3
     b_init = array([0.5, 0.5])
     alpha_init = array([0.0, 0.0])
     init_actions_alpha = array([0])
@@ -334,9 +320,6 @@ if __name__ == "__main__":
     pomdp_solve.generateBeliefSet(b_init)
     pomdp_solve.valueIteration()
     pomdp_solve.plan(b_init,nEps)
-    print "Number of Alpha Vectors =", pomdp_solve.nAlphas
-    print "Number of Trajecotries Used = ", nTraj
-    print "Number of Beleif Points =", nT
 #    state = 0
 #    pomdp_solve.run = True
 #    new_state, beleif = pomdp_solve.plan(state,b_init)
