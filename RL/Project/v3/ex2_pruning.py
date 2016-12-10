@@ -14,8 +14,8 @@ import random as randomize
 
 class  POMDP:
     def __init__(self):
-        self.nCols = 8
-        self.nRows = 6
+        self.nCols = 5
+        self.nRows = 4
         self.nStates = self.nCols*self.nRows
         self.nObservations = self.nStates
         self.nActions = 4
@@ -216,7 +216,7 @@ class algorithm():
     def __init__(self,nTraj,nT,pomdp,init_alpha,init_actions_alpha):
         self.nTraj = nTraj
         self.nT = nT
-        self.K = 2
+        self.maxAlpha = 40
         self.gamma = 0.95
         self.pomdp = pomdp
         self.B = zeros([nTraj,nT,self.pomdp.nStates])
@@ -227,7 +227,7 @@ class algorithm():
 
 #        gmix = mixture.GMM(n_components=self.K, covariance_type='full')
 #        gmix.fit(self.valueFn)
-        self.valueFn_gmm = zeros(self.K)
+#        self.valueFn_gmm = zeros(self.K)
 
     def generateBeliefSet(self,b_init):
         for i in range(self.nTraj):
@@ -281,14 +281,18 @@ class algorithm():
         k = 0
 
 #        w_run = True
+        combinedValue = zeros(n_eps)
+        valueUpdate = zeros(n_eps)
+        
         while(k<n_eps): # Check if this condition for checking is correct or not
 
             # Randomly choose a trajectory
             r = random.randint(0,self.nTraj)
 
-            k = k+1
             print "Starting New Episode #######################################"
-            print "Episode Number = ", k
+            print "Episode Number = ", k+1
+            totalValue = 0
+            valueDiff = 0
             for t in range(self.nT-1,-1,-1):
 #                if(argmax(self.B[r,t]) == (self.pomdp.goal[0]*self.pomdp.nCols + self.pomdp.goal[1])):
 #                    w_run = False
@@ -302,12 +306,21 @@ class algorithm():
 #                new_valueFn = self.beliefValueWithNewAlpha(new_alpha,(pomdp.B_set[r,t]))
                 print "Time step = ", t                
                 print "New_value-old_value = ", new_value-old_value
+                totalValue = totalValue + new_value
+                valueDiff = valueDiff + (new_value - old_value)
                 
                 if(new_value > old_value):
+                    print "Number of Alpha Vectors = ", self.nAlphas
+                    # Pruning lowest value alpha-Vector
+                    if self.nAlphas > self.maxAlpha:
+                        self.valueFn = self.pruneAlpha()
+                        print "Pruning an alpha vector and Adding the new one \n"
+                    else:
+                        self.nAlphas = self.nAlphas + 1
+                        print "Adding a new alpha_vector\n"
+                                           
                     self.valueFn = vstack((self.valueFn, new_alpha)) # Check how this addition should be done
                     self.actions_alpha = vstack((self.actions_alpha,action_alpha))
-                    self.nAlphas = self.nAlphas + 1
-                    print "Added a new alpha_vector\n"
 
                     # projecting to smaller representation: fit a K parameter GMM
                     # Check if direct implemetation like this works or do we need to generate samples before we can fit
@@ -316,7 +329,13 @@ class algorithm():
 #                    gmix.fit(self.valueFn)
 #                    self.valueFn_gmm = gmix.means_
             
+            combinedValue[k] = totalValue
+            valueUpdate[k] = valueDiff
+
+            k = k+1
             print "\n"
+        return combinedValue, valueUpdate
+            
 
     def beliefValue(self,b):
         if self.nAlphas == 1:
@@ -348,6 +367,20 @@ class algorithm():
             for s_dash in range(self.pomdp.nStates)]) for j in range(self.nAlphas)]) \
             for obs in range(self.pomdp.nObservations)]) for state in range(self.pomdp.nStates)]
 
+    def pruneAlpha(self):
+        alp_max = zeros(self.nAlphas)
+        for alp in range(self.nAlphas):
+            dummy = zeros([self.nTraj,self.nT])
+            
+            for i in range(self.nTraj):
+                for j in range(self.nT):
+                    dummy[i,j] = dot(self.valueFn[alp],self.B[i,j])
+                    
+            alp_max[alp] = dummy.max()
+        
+        pr = argmin(alp_max)
+        return delete(self.valueFn,pr,0)
+
 
     def plan(self,b_init):
         print "Executing the Plan ###########################################"
@@ -356,11 +389,15 @@ class algorithm():
         belief = b_init
         self.run = True
         k = 0
+        state = [argmax(belief)/self.pomdp.nCols, argmax(belief)%self.pomdp.nCols]
+        traj = [state]
+
         while(self.run and k<50):
 #            print "Current belief = ", belief
             
             state = [argmax(belief)/self.pomdp.nCols, argmax(belief)%self.pomdp.nCols]
             print "Current Most Probable State = ", state
+            
             
             if self.nAlphas == 1:
                 alpha_max = argmax([dot(self.valueFn,belief) for j in range(self.nAlphas)])
@@ -372,6 +409,7 @@ class algorithm():
             
             print "action Taken= ", self.pomdp.action[int(action)]
             print "observation for Next State= ", obs
+            traj = traj+ [obs]
 
             if argmax(belief) == (self.pomdp.goal[0]*self.pomdp.nCols + self.pomdp.goal[1]):
                 print "Goal Reached"
@@ -380,13 +418,13 @@ class algorithm():
             print "\n"
             k = k+1
 
-        return
+        return traj
 
 
 if __name__ == "__main__":
-    nEps = 5
-    nTraj = 15
-    nT = 10
+    nEps = 20
+    nTraj = 10
+    nT = 5
     pomdp = POMDP()
 #    b_init = (1./pomdp.nStates)*ones(pomdp.nStates)
     b_init = zeros(pomdp.nStates)
@@ -400,9 +438,30 @@ if __name__ == "__main__":
     pomdp_solve = algorithm(nTraj,nT,pomdp, alpha_init,init_actions_alpha)
 
     pomdp_solve.generateBeliefSet(b_init)
-    pomdp_solve.valueIteration(nEps)
-    pomdp_solve.plan(b_init)
-#    state = 0
+    totalRewards, updateInValue = pomdp_solve.valueIteration(nEps)
+    traj = pomdp_solve.plan(b_init)
+    
+    filename = 'data/data' + str(random.randint(1000)) + '.txt'
+
+    f = open(filename, 'w')
+    f.write("Number of Episodes = ")
+    f.write(str(nEps))
+    f.write("\t Number of Sampled Trajectories = ")
+    f.write(str(nTraj))
+    f.write("\t Number of Belief Points = ")
+    f.write(str(nT))
+    f.write("\n Total Value of the system with Episodes = ")
+    f.write(str(totalRewards))
+    f.write("\n Update in the value with Episodes = ")
+    f.write(str(updateInValue))
+    f.write("\n Final Trajectory Taken = ")
+    f.write(str(traj))
+    f.close()
+
+    
+    
+    
+    #    state = 0
 #    pomdp_solve.run = True
 #    new_state, beleif = pomdp_solve.plan(state,b_init)
 #    print "Beleif Set = ", pomdp_solve.B

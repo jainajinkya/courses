@@ -10,44 +10,48 @@ from numpy import *
 from pypr.clustering import *
 from sklearn import mixture
 import random as randomize
-#from TigerProblem import TigerProblem
 
 class  POMDP:
     def __init__(self):
-        self.nCols = 8
-        self.nRows = 6
+        self.nCols = 11
+        self.nRows = 8
         self.nStates = self.nCols*self.nRows
         self.nObservations = self.nStates
         self.nActions = 4
 
         self.domain,self.walls = self.defineDomain()
-#        self.state = ['tiger_left', 'tiger_right']
         self.action = ['right', 'left', 'up', 'down']
-#        self.obs = ['tiger_left', 'tiger_right']
-        self.observation_success_prob = 1.0
-        self.transistion_success_prob = 1.0
-        self.goal = [self.nRows-2,self.nCols-2]
-        self.transistionMatrix = array([self.trans_matrix(action) for action in range(self.nActions)])
+        self.observation_success_prob = 0.85
+        self.transistion_success_prob = 0.90
+        self.transistion_success_prob1 = 0.80
+        self.goal = [self.nRows-3,self.nCols-3]
+        self.transistionMatrix = array([self.trans_matrix(action,0) for action in range(self.nActions)])
+        self.transistionMatrix1 = array([self.trans_matrix(action,1) for action in range(self.nActions)])
 
     def defineDomain(self):
         bottom = [[0, i] for i in range(self.nCols)]
         top = [[self.nRows-1,i] for i in range(self.nCols)]
         right = [[i,self.nCols-1] for i in range(self.nRows)]
         left = [[i,0] for i in range(self.nRows)]
-#        middle = [[i,round(self.nCols/2)] for i in range(self.nRows)]
-        middle = []
-#        opening = [3,round(self.nCols/2)]
+        middle = [[i,int(round(self.nCols/2))] for i in range(self.nRows)]
+#        middle = []
+        opening = [[int(round(self.nRows/2))-1,int(round(self.nCols/2))],[int(round(self.nRows/2)),int(round(self.nCols/2))]]
 
         walls = bottom + top + right + left + middle
-#        walls.remove(opening)
+        walls = [x for x in walls if x not in opening]
 
         domain = [[i,j] for i in range(self.nRows) for j in range(self.nCols) \
                   if [i,j] not in walls]
 
         return domain, walls
 
-    def trans_matrix(self,action):
+    def trans_matrix(self,action,mode):
         mat = zeros([self.nStates,self.nStates])
+        if mode == 0:
+            trans_prob = self.transistion_success_prob
+        else:
+            trans_prob = self.transistion_success_prob1
+            
         if action == 0:
             for i in range(self.nStates):
                 r = i/self.nCols
@@ -55,18 +59,18 @@ class  POMDP:
 
                 if [r,c] in self.domain:
                     if [r,c+1] in self.domain:
-                        mat[i,i+1] = self.transistion_success_prob # Right
+                        mat[i,i+1] = trans_prob # Right
                     else:
                         mat[i,i] = 1.0
                         continue
 
                     if([r+1,c] in self.domain and [r-1,c] in self.domain): # Top
-                        mat[i,i + self.nCols] = (1.-self.transistion_success_prob)/2. #0.1
-                        mat[i,i - self.nCols] = (1.-self.transistion_success_prob)/2. #0.1
+                        mat[i,i + self.nCols] = (1.-trans_prob)/2. #0.1
+                        mat[i,i - self.nCols] = (1.-trans_prob)/2. #0.1
                     elif([r+1,c] in self.domain):
-                        mat[i,i + self.nCols] = 1.-self.transistion_success_prob #0.2
+                        mat[i,i + self.nCols] = 1.-trans_prob #0.2
                     else:
-                        mat[i,i - self.nCols] = 1.-self.transistion_success_prob #0.2
+                        mat[i,i - self.nCols] = 1.-trans_prob #0.2
 
 
         elif action == 1:
@@ -76,18 +80,18 @@ class  POMDP:
 
                 if [r,c] in self.domain:
                     if [r,c-1] in self.domain:
-                        mat[i,i-1] = self.transistion_success_prob #0.8 # Left
+                        mat[i,i-1] = trans_prob #0.8 # Left
                     else:
                         mat[i,i] = 1.0
                         continue
 
                     if([r+1,c] in self.domain and [r-1,c] in self.domain): # Top
-                        mat[i,i + self.nCols] = (1.-self.transistion_success_prob)/2. #0.1
-                        mat[i,i - self.nCols] = (1.-self.transistion_success_prob)/2. #0.1
+                        mat[i,i + self.nCols] = (1.-trans_prob)/2. #0.1
+                        mat[i,i - self.nCols] = (1.-trans_prob)/2. #0.1
                     elif([r+1,c] in self.domain):
-                        mat[i,i + self.nCols] = 1.-self.transistion_success_prob #0.2
+                        mat[i,i + self.nCols] = 1.-trans_prob #0.2
                     else:
-                        mat[i,i - self.nCols] = 1.-self.transistion_success_prob #0.2
+                        mat[i,i - self.nCols] = 1.-trans_prob #0.2
 
         elif action == 2:
             for i in range(self.nStates):
@@ -96,18 +100,18 @@ class  POMDP:
 
                 if [r,c] in self.domain:
                     if [r+1,c] in self.domain:
-                        mat[i,i+self.nCols] = self.transistion_success_prob #0.8 # Up
+                        mat[i,i+self.nCols] = trans_prob #0.8 # Up
                     else:
                         mat[i,i] = 1.0
                         continue
 
                     if([r,c+1] in self.domain and [r,c-1] in self.domain): # Top
-                        mat[i,i -1] = (1.-self.transistion_success_prob)/2. #0.1
-                        mat[i,i +1] = (1.-self.transistion_success_prob)/2. #0.1
+                        mat[i,i -1] = (1.-trans_prob)/2. #0.1
+                        mat[i,i +1] = (1.-trans_prob)/2. #0.1
                     elif([r,c+1] in self.domain):
-                        mat[i,i + 1] = 1.-self.transistion_success_prob #0.2
+                        mat[i,i + 1] = 1.-trans_prob #0.2
                     else:
-                        mat[i,i - 1] = 1.-self.transistion_success_prob #0.2
+                        mat[i,i - 1] = 1.-trans_prob #0.2
 
         elif action == 3:
             for i in range(self.nStates):
@@ -116,25 +120,34 @@ class  POMDP:
 
                 if [r,c] in self.domain:
                     if [r-1,c] in self.domain:
-                        mat[i,i-self.nCols] = self.transistion_success_prob #0.8 # Down
+                        mat[i,i-self.nCols] = trans_prob #0.8 # Down
                     else:
                         mat[i,i] = 1.0
                         continue
 
                     if([r,c+1] in self.domain and [r,c-1] in self.domain):
-                        mat[i,i -1] = (1.-self.transistion_success_prob)/2. #0.1
-                        mat[i,i +1] = (1.-self.transistion_success_prob)/2. #0.1
+                        mat[i,i -1] = (1.-trans_prob)/2. #0.1
+                        mat[i,i +1] = (1.-trans_prob)/2. #0.1
                     elif([r,c+1] in self.domain):
-                        mat[i,i + 1] = 1.-self.transistion_success_prob #0.2
+                        mat[i,i + 1] = 1.-trans_prob #0.2
                     else:
-                        mat[i,i - 1] = 1.-self.transistion_success_prob #0.2
+                        mat[i,i - 1] = 1.-trans_prob #0.2
 
         return mat
 
 
-    def stateUpdate(self,state,action):
+    def stateUpdate(self,state,action,mode):
         # State here should come in [i,j] and not in just the state number
         new_state = [state[0],state[1]]
+        
+        if mode == 0:
+            trans_prob = self.transistion_success_prob
+        else:
+            trans_prob = self.transistion_success_prob1
+
+        p_idx = random.rand()
+        if p_idx > trans_prob:
+            action = random.randint(0,self.nActions)
 
         if action == 0:
             new_state[1] = state[1] + 1
@@ -155,6 +168,7 @@ class  POMDP:
             new_state[0] = state[0] - 1
             if new_state in self.walls:
                 new_state[0] = state[0]
+        
 
         return new_state
 
@@ -162,7 +176,11 @@ class  POMDP:
     def stateTransitionProb(self,new_state,belief,action):
 #        self.transistionMatrix = self.trans_matrix(action)
         new_state_idx = new_state[0]*self.nCols + new_state[1]
-        return dot(self.transistionMatrix[action,:,new_state_idx],belief)
+
+        if new_state[1] >= int(round(self.nCols/2)):
+            return dot(self.transistionMatrix1[action,:,new_state_idx],belief)
+        else:
+            return dot(self.transistionMatrix[action,:,new_state_idx],belief)
 
 
     def stateTransitionProbState(self,new_state,state,action):
@@ -170,7 +188,11 @@ class  POMDP:
         new_state_idx = new_state[0]*self.nCols + new_state[1]
         b = zeros([self.nStates])
         b[state[0]*self.nCols + state[1]] = 1.0
-        dummy = dot(self.transistionMatrix[action,:,new_state_idx],b)
+        
+        if new_state[1] >= int(round(self.nCols/2)):
+            dummy = dot(self.transistionMatrix1[action,:,new_state_idx],b)
+        else:
+            dummy = dot(self.transistionMatrix[action,:,new_state_idx],b)
         return dot(dummy,b)
 
 
@@ -184,7 +206,11 @@ class  POMDP:
 
 
     def observations(self,state,action):
-        newState = self.stateUpdate(state,action)
+        if state[1] >= int(round(self.nCols/2)):
+            newState = self.stateUpdate(state,action,1)
+        else:
+            newState = self.stateUpdate(state,action,0)
+            
         rand_num = random.rand()
         
         if rand_num < self.observation_success_prob:
@@ -216,7 +242,7 @@ class algorithm():
     def __init__(self,nTraj,nT,pomdp,init_alpha,init_actions_alpha):
         self.nTraj = nTraj
         self.nT = nT
-        self.K = 2
+        self.maxAlpha = 50
         self.gamma = 0.95
         self.pomdp = pomdp
         self.B = zeros([nTraj,nT,self.pomdp.nStates])
@@ -227,7 +253,7 @@ class algorithm():
 
 #        gmix = mixture.GMM(n_components=self.K, covariance_type='full')
 #        gmix.fit(self.valueFn)
-        self.valueFn_gmm = zeros(self.K)
+#        self.valueFn_gmm = zeros(self.K)
 
     def generateBeliefSet(self,b_init):
         for i in range(self.nTraj):
@@ -245,7 +271,10 @@ class algorithm():
                 action = random.randint(0,self.pomdp.nActions)
 
                 # Draw a sample from the new probability distribution
-                new_state = self.pomdp.stateUpdate(state,action)
+                if state[1] >= int(round(self.pomdp.nCols/2)):
+                    new_state = self.pomdp.stateUpdate(state,action,1)
+                else:
+                    new_state = self.pomdp.stateUpdate(state,action,0)
 
                 # Draw a sample from the observation probabilities
                 obs = self.pomdp.observations(state,action)
@@ -281,14 +310,18 @@ class algorithm():
         k = 0
 
 #        w_run = True
+        combinedValue = zeros(n_eps)
+        valueUpdate = zeros(n_eps)
+        
         while(k<n_eps): # Check if this condition for checking is correct or not
 
             # Randomly choose a trajectory
             r = random.randint(0,self.nTraj)
 
-            k = k+1
             print "Starting New Episode #######################################"
-            print "Episode Number = ", k
+            print "Episode Number = ", k+1
+            totalValue = 0
+            valueDiff = 0
             for t in range(self.nT-1,-1,-1):
 #                if(argmax(self.B[r,t]) == (self.pomdp.goal[0]*self.pomdp.nCols + self.pomdp.goal[1])):
 #                    w_run = False
@@ -302,12 +335,21 @@ class algorithm():
 #                new_valueFn = self.beliefValueWithNewAlpha(new_alpha,(pomdp.B_set[r,t]))
                 print "Time step = ", t                
                 print "New_value-old_value = ", new_value-old_value
+                totalValue = totalValue + new_value
+                valueDiff = valueDiff + (new_value - old_value)
                 
                 if(new_value > old_value):
+                    print "Number of Alpha Vectors = ", self.nAlphas
+                    # Pruning lowest value alpha-Vector
+                    if self.nAlphas > self.maxAlpha:
+                        self.valueFn = self.pruneAlpha()
+                        print "Pruning an alpha vector and Adding the new one \n"
+                    else:
+                        self.nAlphas = self.nAlphas + 1
+                        print "Adding a new alpha_vector\n"
+                                           
                     self.valueFn = vstack((self.valueFn, new_alpha)) # Check how this addition should be done
                     self.actions_alpha = vstack((self.actions_alpha,action_alpha))
-                    self.nAlphas = self.nAlphas + 1
-                    print "Added a new alpha_vector\n"
 
                     # projecting to smaller representation: fit a K parameter GMM
                     # Check if direct implemetation like this works or do we need to generate samples before we can fit
@@ -316,7 +358,13 @@ class algorithm():
 #                    gmix.fit(self.valueFn)
 #                    self.valueFn_gmm = gmix.means_
             
+            combinedValue[k] = totalValue
+            valueUpdate[k] = valueDiff
+
+            k = k+1
             print "\n"
+        return combinedValue, valueUpdate
+            
 
     def beliefValue(self,b):
         if self.nAlphas == 1:
@@ -348,19 +396,35 @@ class algorithm():
             for s_dash in range(self.pomdp.nStates)]) for j in range(self.nAlphas)]) \
             for obs in range(self.pomdp.nObservations)]) for state in range(self.pomdp.nStates)]
 
+    def pruneAlpha(self):
+        alp_max = zeros(self.nAlphas)
+        for alp in range(self.nAlphas):
+            dummy = zeros([self.nTraj,self.nT])
+            
+            for i in range(self.nTraj):
+                for j in range(self.nT):
+                    dummy[i,j] = dot(self.valueFn[alp],self.B[i,j])
+                    
+            alp_max[alp] = dummy.max()
+        
+        pr = argmin(alp_max)
+        return delete(self.valueFn,pr,0)
+
 
     def plan(self,b_init):
         print "Executing the Plan ###########################################"
-#        state = random.randint(self.pomdp.nStates)
-#        print "state =", self.pomdp.state[state]
         belief = b_init
         self.run = True
         k = 0
+        state = [argmax(belief)/self.pomdp.nCols, argmax(belief)%self.pomdp.nCols]
+        traj = [state]
+
         while(self.run and k<50):
 #            print "Current belief = ", belief
             
             state = [argmax(belief)/self.pomdp.nCols, argmax(belief)%self.pomdp.nCols]
             print "Current Most Probable State = ", state
+            
             
             if self.nAlphas == 1:
                 alpha_max = argmax([dot(self.valueFn,belief) for j in range(self.nAlphas)])
@@ -372,6 +436,7 @@ class algorithm():
             
             print "action Taken= ", self.pomdp.action[int(action)]
             print "observation for Next State= ", obs
+            traj = traj+ [obs]
 
             if argmax(belief) == (self.pomdp.goal[0]*self.pomdp.nCols + self.pomdp.goal[1]):
                 print "Goal Reached"
@@ -380,13 +445,13 @@ class algorithm():
             print "\n"
             k = k+1
 
-        return
+        return traj
 
 
 if __name__ == "__main__":
-    nEps = 5
-    nTraj = 15
-    nT = 10
+    nEps = 20
+    nTraj = 25
+    nT = 7
     pomdp = POMDP()
 #    b_init = (1./pomdp.nStates)*ones(pomdp.nStates)
     b_init = zeros(pomdp.nStates)
@@ -400,18 +465,29 @@ if __name__ == "__main__":
     pomdp_solve = algorithm(nTraj,nT,pomdp, alpha_init,init_actions_alpha)
 
     pomdp_solve.generateBeliefSet(b_init)
-    pomdp_solve.valueIteration(nEps)
-    pomdp_solve.plan(b_init)
-#    state = 0
-#    pomdp_solve.run = True
-#    new_state, beleif = pomdp_solve.plan(state,b_init)
-#    print "Beleif Set = ", pomdp_solve.B
-#    print "Value function =", pomdp_solve.valueFn
-#    print traj
-#        environment.reset()
+    totalRewards, updateInValue = pomdp_solve.valueIteration(nEps)
+    traj = pomdp_solve.plan(b_init)
+    
+    ex_number = random.randint(1000)
+    filename = 'data_hybrid/data' + str(ex_number) + '.txt'
 
+    f = open(filename, 'w')
+    f.write("Number of Episodes = ")
+    f.write(str(nEps))
+    f.write("\t Number of Sampled Trajectories = ")
+    f.write(str(nTraj))
+    f.write("\t Number of Belief Points = ")
+    f.write(str(nT))
+    f.write("\n Total Value of the system with Episodes = ")
+    f.write(str(totalRewards))
+    f.write("\n Update in the value with Episodes = ")
+    f.write(str(updateInValue))
+    f.write("\n Final Trajectory Taken = ")
+    f.write(str(traj))
+    f.close()
 
-
-
-
-
+    filename2 = 'data_hybrid/value_function_hybrid' + str(ex_number) + '.npy'    
+    f2 = open(filename2, 'w')
+    save(f2,pomdp_solve.valueFn)
+    f2.close()
+    
