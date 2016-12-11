@@ -13,8 +13,8 @@ import random as randomize
 
 class  POMDP:
     def __init__(self):
-        self.nCols = 11
-        self.nRows = 8
+        self.nCols = 10
+        self.nRows = 7
         self.nStates = self.nCols*self.nRows
         self.nObservations = self.nStates
         self.nActions = 4
@@ -242,7 +242,7 @@ class algorithm():
     def __init__(self,nTraj,nT,pomdp,init_alpha,init_actions_alpha):
         self.nTraj = nTraj
         self.nT = nT
-        self.maxAlpha = 50
+        self.maxAlpha = 40
         self.gamma = 0.95
         self.pomdp = pomdp
         self.B = zeros([nTraj,nT,self.pomdp.nStates])
@@ -449,9 +449,9 @@ class algorithm():
 
 
 if __name__ == "__main__":
-    nEps = 20
+    nEps = 25
     nTraj = 25
-    nT = 7
+    nT = 4
     pomdp = POMDP()
 #    b_init = (1./pomdp.nStates)*ones(pomdp.nStates)
     b_init = zeros(pomdp.nStates)

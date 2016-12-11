@@ -1,0 +1,4 @@
+Number of Episodes = 5	 Number of Sampled Trajectories = 25	 Number of Belief Points = 6
+ Total Value of the system with Episodes = [  -0.90721994  249.46661391   -0.78937459  176.72342611  248.04551765]
+ Update in the value with Episodes = [  -5.22809926  162.01481667   -6.17661833   70.62837125   83.04782069]
+ Final Trajectory Taken = [[1, 1], [1, 2], [1, 3], [1, 4], [1, 4], [3, 7], [2, 6], [3, 6], [3, 7], [4, 7]]
