@@ -5,9 +5,9 @@ import matplotlib.pyplot as plt
 #from tiles import *
 import itertools
 from matplotlib import rcParams
+# from scipy.signal import savgol_filter
 from scipy.signal import medfilt
 
-## Simulator
 class env():
     def __init__(self):
         self.m1 = 1
@@ -23,7 +23,7 @@ class env():
 
 
     def simulator(self,cur_State,action):
-        tau = action*1.0
+        tau = action*10.0
         [th1,th1_Dot, th2, th2_Dot] = cur_State
 
 
@@ -49,7 +49,7 @@ class env():
         return -1.
 
 
-## Function Approximation
+
 class basis_fn():
     def fourier(self,cur_state,f_order):
         n_dim = len(cur_state)
@@ -79,7 +79,6 @@ class basis_fn():
         return alpha2
 
 
-## Policy 
 class policy():
     def e_greedy(self, weights,phi,n_eps):
         p = rand.rand()
@@ -100,17 +99,14 @@ class policy():
 #            else: action = 1
 
         return action
-        
-        
 
-## SARSA
 
 if __name__ == '__main__':
     world = env()
     ctrl = policy()
     basis = basis_fn()
 
-    n_eps = 1
+    n_eps = 100
     
     f_steps = open('acrobot_steps.npy', 'w')
     gamma = 1.
@@ -125,7 +121,7 @@ if __name__ == '__main__':
     weights = np.zeros((n_actions,len(phi)))
     
 #    alpha = 0.001/len(phi)
-    alpha = 0.002
+    alpha = 0.001
     alpha2 = basis.alpha_weights(f_order,alpha)
     t_state = [0,3]
 
@@ -140,10 +136,7 @@ if __name__ == '__main__':
         action = ctrl.e_greedy(weights,phi,ep)
         n_steps = 0
         
-        tip = [world.l1*np.cos(cur_state[0]-np.pi/2) + world.l2*np.cos(cur_state[0]\
-               - np.pi/2 + cur_state[2]), world.l1*np.sin(cur_state[0]- np.pi/2) \
-               + world.l2*np.sin(cur_state[0] - np.pi/2 + cur_state[2])]
-
+        tip = [world.l1*np.cos(cur_state[0]-np.pi/2) + world.l2*np.cos(cur_state[0] - np.pi/2 + cur_state[2]), world.l1*np.sin(cur_state[0]- np.pi/2) + world.l2*np.sin(cur_state[0] - np.pi/2 + cur_state[2])]
         count_action = 0
 
         e_vector = np.zeros(len(phi))
@@ -167,11 +160,10 @@ if __name__ == '__main__':
 
            delta = reward + gamma*new_Q - Q
            
-#           e_vector = gamma*labda*e_vector + (1 - gamma*labda*np.dot(e_vector,np.multiply(alpha2,phi)))*phi
+           e_vector = gamma*labda*e_vector + (1 - gamma*labda*np.dot(e_vector,np.multiply(alpha2,phi)))*phi
 
-           weights[action+1,:] = weights[action+1,:] + alpha*delta*phi
-#           weights[action+1,:] = weights[action+1,:] + (delta + Q - Q_old)*np.multiply(alpha2,e_vector)\
-#                                 - (Q-Q_old)*np.multiply(alpha2,phi) 
+#           weights[action+1,:] = weights[action+1,:] + alpha*delta*phi
+           weights[action+1,:] = weights[action+1,:] + (delta + Q - Q_old)*np.multiply(alpha2,e_vector) - (Q-Q_old)*np.multiply(alpha2,phi) 
            
            phi = new_phi
            cur_state = new_state
@@ -234,23 +226,66 @@ if __name__ == '__main__':
     for i in np.arange(0,len(t_n_steps)):
         filt_steps[i] = np.mean(t_n_steps[i:i+step_sz])
 
-        
-#    ## Plot reward function
+    # Plot reward function
+    fig = plt.figure()
+#    plt.hold(True)
+    x_vec = np.arange(0,n_eps)
+
+    m1 = np.mean(filt_steps)*np.ones(len(x_vec))
+    line1, = plt.plot(x_vec,filt_steps, 'r', linewidth=3.0)    
+    plt.plot(x_vec,m1,'r--', linewidth=3.0)
+
+    axes = plt.gca()
+    axes.set_xlim([0,n_eps])
+#    axes.set_ylim([-400, 0])
+#    plt.legend([line1],['SARSA', 'Q-Learning'],loc=4)
+    plt.xlabel('No. of Episodes')
+    plt.ylabel('Number of Steps in each episode')
+#    plt.text(5., -25.,'\eps = 0.2', fontsize=18)
+    rcParams.update({'font.size': 18})
+    plt.show()
+    
+    f.close()
+    
+#    
+#    # Plot reward function
 #    fig = plt.figure()
 #    x_vec = np.arange(0,n_eps)
+#    # filtered_rew_sarsa = savgol_filter(total_reward_sarsa, 5, 1)
+#    # filtered_rew_q_learn = savgol_filter(total_reward_q_learn, 5, 1)
 #
-#    m1 = np.mean(filt_steps)*np.ones(len(x_vec))
-#    line1, = plt.plot(x_vec,filt_steps, 'r', linewidth=3.0)    
+#    filtered_rew_sarsa = medfilt(total_reward_sarsa, 25)
+#
+#    m1 = np.mean(filtered_rew_sarsa)*np.ones(len(x_vec))
+#    m2 = np.mean(filt_r_q)*np.ones(len(x_vec))
+#    # filtered_rew_q_learn = medfilt(total_reward_q_learn, 5)
+#    line1, = plt.plot(x_vec,filtered_rew_sarsa, 'r', linewidth=3.0)
+#    # plt.plot(x_vec,filtered_rew_q_learn, 'b')
+#    # plt.plot(x_vec,filt_r_s, 'r')
+#    line2, = plt.plot(x_vec,filt_r_q, 'b', linewidth=3.0)
+#    
 #    plt.plot(x_vec,m1,'r--', linewidth=3.0)
+#    plt.plot(x_vec,m2,'b--', linewidth=3.0)
 #
 #    axes = plt.gca()
 #    axes.set_xlim([0,n_eps])
-##    axes.set_ylim([-400, 0])
-##    plt.legend([line1],['SARSA', 'Q-Learning'],loc=4)
+#    axes.set_ylim([-500, 0])
+#    plt.legend([line1, line2],['SARSA', 'Q-Learning'],loc=4)
 #    plt.xlabel('No. of Episodes')
-#    plt.ylabel('Number of Steps in each episode')
+#    plt.ylabel('Total reward in each episode')
 ##    plt.text(5., -25.,'\eps = 0.2', fontsize=18)
 #    rcParams.update({'font.size': 18})
 #    plt.show()
-#    
-#    f.close()
+#
+#    # p_value = np.zeros((size_world[0],size_world[1]))
+#    # # dummy_state = world.state_update([1,11],3)
+#    # # p_value(dummy_state) = 1.0
+#    # print dummy_state
+#
+#    # ax = fig.add_subplot(111, projection='3d')
+#    # X = np.arange(0, size_world[1], 1)
+#    # Y = np.arange(0, size_world[0], 1)
+#    # X, Y = np.meshgrid(X, Y)
+#    # surf = ax.plot_surface(X, Y, p_value, rstride=1, cstride=1, cmap=cm.coolwarm,
+#    #         linewidth=0, antialiased=False)
+#    # plt.show()

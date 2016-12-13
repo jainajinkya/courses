@@ -109,7 +109,10 @@ if __name__ == '__main__':
 			reward = world.r_function(new_state)
 			new_action = ctrl.e_greedy(new_state,q_value_sarsa)
 
-			q_value_sarsa[cur_state[0],cur_state[1],action] = q_value_sarsa[cur_state[0],cur_state[1],action] + alpha*(reward + disc*q_value_sarsa[new_state[0],new_state[1],new_action] - q_value_sarsa[cur_state[0],cur_state[1],action])
+			q_value_sarsa[cur_state[0],cur_state[1],action] = \
+            q_value_sarsa[cur_state[0],cur_state[1],action] + \
+            alpha*(reward + disc*q_value_sarsa[new_state[0],new_state[1],new_action]\
+                   - q_value_sarsa[cur_state[0],cur_state[1],action])
 
 			if reward == -100:
 				new_state = [0,0] ## Restarting
