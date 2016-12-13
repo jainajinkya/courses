@@ -33,7 +33,7 @@ class env():
 
 
     def simulator(self,cur_State,action):
-        tau = action*1.0
+        tau = action*10.0
         [th1,th1_Dot, th2, th2_Dot] = cur_State
 
 
