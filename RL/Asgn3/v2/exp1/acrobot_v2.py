@@ -33,7 +33,7 @@ class env():
 
 
     def simulator(self,cur_State,action):
-        tau = action*2.0
+        tau = action*1.0
         [th1,th1_Dot, th2, th2_Dot] = cur_State
 
 
@@ -236,7 +236,7 @@ if __name__ == '__main__':
     f_order = 3
     initState = np.array([0., 0., 0., 0.])
     n_eps = 500
-    nSkipSteps = 5
+    nSkipSteps = 4
 
     algo = algorithm(f_order,initState,world,basis)
     
@@ -246,7 +246,7 @@ if __name__ == '__main__':
     x_vec = np.arange(0,n_eps)
     clrs = ['b','g','r','k','c','m']
     handle = []
-    for i in range(nSkipSteps):
+    for i in range(3,nSkipSteps):
         print "#############################"
         print "Effort Skip Steps =", i
         t_n_steps[:,i]  = algo.sarsa(n_eps,initState,world,basis,i)

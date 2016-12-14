@@ -80,7 +80,7 @@ class basis_fn():
         x = np.arange(0,f_order+1)
         c = [p for p in itertools.product(x, repeat=4)]
 
-        alpha2 = 0.5*np.ones(len(c))
+        alpha2 = alpha*np.ones(len(c))
 
         for i in range(len(c)-1):
             # print "i =", np.sum(c[i+1])
