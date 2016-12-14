@@ -237,16 +237,15 @@ if __name__ == '__main__':
     initState = np.array([0., 0., 0., 0.])
     n_eps = 500
     nSkipSteps = 5
-
-    algo = algorithm(f_order,initState,world,basis)
-    
-    t_n_steps = np.zeros((n_eps,nSkipSteps))
     
 #    fig = plt.figure()
     x_vec = np.arange(0,n_eps)
     clrs = ['b','g','r','k','c','m']
     handle = []
     for i in range(nSkipSteps):
+        algo = algorithm(f_order,initState,world,basis)
+    
+        t_n_steps = np.zeros((n_eps,nSkipSteps))
         print "#############################"
         print "Effort Skip Steps =", i
         t_n_steps[:,i]  = algo.sarsa(n_eps,initState,world,basis,i)

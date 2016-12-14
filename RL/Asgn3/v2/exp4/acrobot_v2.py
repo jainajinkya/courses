@@ -95,7 +95,7 @@ class algorithm():
         self.gamma = 1.
         self.lamda = 0.9
         self.f_order = f_order
-        self.alpha = 5e-5
+        self.alpha = 2e-5
         self.alpha2 = basis.alpha_weights(self.f_order,self.alpha)      
         self.weights = np.zeros((world.nActions,len(self.alpha2)))
     
@@ -233,20 +233,19 @@ if __name__ == '__main__':
     world = env()
     basis = basis_fn()
 
-    f_order = 3
+    f_order = 4
     initState = np.array([0., 0., 0., 0.])
     n_eps = 500
     nSkipSteps = 5
-
-    algo = algorithm(f_order,initState,world,basis)
-    
-    t_n_steps = np.zeros((n_eps,nSkipSteps))
     
 #    fig = plt.figure()
     x_vec = np.arange(0,n_eps)
     clrs = ['b','g','r','k','c','m']
     handle = []
     for i in range(nSkipSteps):
+        algo = algorithm(f_order,initState,world,basis)
+    
+        t_n_steps = np.zeros((n_eps,nSkipSteps))
         print "#############################"
         print "Effort Skip Steps =", i
         t_n_steps[:,i]  = algo.sarsa(n_eps,initState,world,basis,i)
