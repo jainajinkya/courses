@@ -1,0 +1,1 @@
+	 alpha = 0.001	 gamma = 1.0	 labda = 0.9	 world size = 12,14
